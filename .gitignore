@@ -5,6 +5,7 @@
 *.DS_Store
 .AppleDouble
 .LSOverride
+.workspace.xml
 
 # Icon must end with two \r
 Icon
