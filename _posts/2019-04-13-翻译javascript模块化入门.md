@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      翻译javascript模块化入门
+title:      【翻译】javascript模块化入门
 date:       2019-04-13
 author:     JY
 header-img: img/cat1_jsModule.jpg
@@ -9,6 +9,7 @@ tags:
     - 前端
     - javascript模块化
 ---
+原文地址：https://medium.freecodecamp.org/javascript-modules-a-beginner-s-guide-783f7d7a5fcc
 # 前言
 如果你是一个javascript新手，上来就接触到一些术语诸如“module bundlers vs. module loaders,” “Webpack vs. Browserify” and “AMD vs. CommonJS”总是会感到很懵
 虽然这些属于听着很让人望而却步，但是掌握它们对于javascript开发者来说还是很重要的。
@@ -16,7 +17,7 @@ tags:
 为了简单，本文会分成两部分。1.模块是啥，为啥我们要用到2.模块打包意味着什么，有哪些不同的方式
 
 
-##part1
+## part1
 ### 为啥用模块
 1.易于维护
 2.命名空间，不污染全局变量
@@ -24,7 +25,7 @@ tags:
 ### 几个javascript模块的例子
 模块范式是用来模仿class的概念的(javascript天生不支持class),所以我们能够像Java一样在一个对象里面存变量，公有方法，私有方法。
 有很多方法可以让我们实现刚才所说的。第一个例子是一个匿名闭包
-####例子1
+#### 例子1
 ```
 (function () {
   // We keep these variables private inside this closure scope
@@ -51,7 +52,7 @@ tags:
 ```
 这样一来所有执行过程中产生的变量都在这个匿名的闭包里面了，就不会污染全局变量，这就是刚刚提到的第二点。
 值得注意的是，在刚刚的例子中最外面的括号是必须有的。因为如果没有括号的话这个函数就属于函数声明（必须有名字），但是加了括号就代表这是一个函数表达式，不需要名字。
-####例子2
+#### 例子2
 我们还可以给模块传递一个全局变量，这样模块会把公有方法放在全局变量里面，Jquery就是用这样的方式
 ```
 (function (globalVariable) {
@@ -113,7 +114,7 @@ tags:
 
  }(globalVariable));
 ```
-####例子3
+#### 例子3
 对象接口,从这个例子里面可以看出myGrade是私有变量，average,failing是共有方法
 ```
 var myGradesCalculate = (function () {
@@ -275,7 +276,7 @@ console.log(counter.counter); // 2
 ```
 也就是说ES6的import并不是对export建立拷贝
 
-##part2
+## part2
 ### 为啥要打包模块呢
 当你把你的程序分成多个模块，你通常要把这些模块组织成不同的文件夹和文件。比如在你使用React的时候你有一组你所使用的库的模块
 那你就需要在你的主html为每一个你所依赖的模块加<script>标签来把这些依赖引入进来。当用户打开你的页面的时候浏览器就会一个一个的单独加载这些<script>
