@@ -183,7 +183,7 @@ myModuleInstance.goodbye(); // 'goodbye!'
 1.由于用到的模块都需要require()所以依赖关系就变得清晰
 2.每个模块不需要写全局变量
 这里需要注意是require()是阻塞的。而javascript又是单线程的，这在server端通常没什么问题因为require的时候只是去读磁盘中的文件然后加载。但是在浏览器中这意味着一个网络请求，唯一的线程会一直等到require的模块文件返回load完毕。
-### AMD
+#### AMD
 接着刚才的问题说。如果在浏览器端能够异步加载模块这样不就好了吗。AMD正式解决这样一个问题的技术，全称是Asynchronous Module Definition。
 下面给出一个AMD的例子
 ```
@@ -193,7 +193,7 @@ define(['myModule', 'myOtherModule'], function(myModule, myOtherModule) {
 ```
 define函数的第一个参数是所需要加载的模块。第二个参数是回调函数，刚刚加载好的模块就会作为args传进回调函数。
 简单来说AMD主要是适用于浏览器。
-### UMD
+#### UMD
 有些项目需要你同时支持AMD和CommonJS功能，那么就可以用UMD(Universal Module Definition)
 UMD支持刚刚说到的两种模块和定义在全局变量的模块。并且即可以在服务端也可以在浏览器端执行。
 下面是一个UMD的例子:
@@ -222,7 +222,7 @@ UMD支持刚刚说到的两种模块和定义在全局变量的模块。并且�
   }
 }));
 ```
-### ES6
+#### ES6
 刚才我们说的所有的打包方式都不是javascript原生支持的。在ES6对语法和语义的定义中，引入了模块的定义。
 ES6中的模块汲取了CommonJS和AMD的优点，声明式的语法和异步加载，和对循环依赖更好的支持。
 还有很厉害的一点是ES6模块的引入是对导出内容的实时只读（这句比较难翻，需要看下面代码理解）。在CommonJS中，import只是对export的拷贝。这是CommonJs的例子
