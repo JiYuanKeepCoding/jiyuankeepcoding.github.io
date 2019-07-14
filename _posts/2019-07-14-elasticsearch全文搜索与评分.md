@@ -234,3 +234,5 @@ fieldLength：是满足查询条件的doc的filed的长度
 avgFieldLength：是满足查询条件的所有doc的filed的长度.
 
 tfNorm反映的该term在所有满足条件的doc中field中的重要性，一般来说，相同的freq 下，field的长度越短，那么取值就越高。
+
+公式部分来自: <a href="https://www.cnblogs.com/wangjiuyong/articles/7055724.html">https://www.cnblogs.com/wangjiuyong/articles/7055724.html</a>
