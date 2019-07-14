@@ -197,13 +197,15 @@ Anaylzer不仅在插入一个新的文档时analyze文档中的字段，也在�
 从上面例子的返回结果中我们可以看到匹配到的唯一的文档总分是0.5753642分。"flexup","flexdown"两个词各自都在与hit到的文档匹配的过程中得到了0.2876821分。
 由此可见打分算法就是把input的每一个词与目标文档的匹配度加总。
 在单个词的匹配中有以下一些要素:
+
 1.关键词在文档中出现的频率
+
 2.比如input换成是how to flexup flexdown vm,匹配到了10个文档，其中9个文档里面都包含how to，然后flexup flexdown都没有一个匹配得到.那么how to这两个词的得分就会很低，可能低于我们指定的score threshold。这样就避免了匹配到各种不相关内容。
 IDF算法就是用来处理这种情况的。
 
 具体公式如下:
 
-<img src="img/es_score_formula.png" />
+<img src="/img/es_score_formula.png" />
 
 N表示将查询关键字分词后得到的N个term。
 
