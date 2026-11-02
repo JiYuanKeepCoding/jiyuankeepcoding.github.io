@@ -491,6 +491,16 @@ body.has-ask .wrap{padding-bottom:120px}
 <style>
 /* 线上静态版：无 server，隐藏问 AI 入口 */
 .ask-inline{display:none!important}
+/* 往期导航卡片 */
+.brief-nav{margin:30px 0 0;font-family:var(--sans)}
+.brief-nav a{display:flex;justify-content:space-between;align-items:center;gap:16px;
+padding:15px 18px;border:1px solid var(--line);border-radius:14px;
+background:var(--card);color:var(--ink);text-decoration:none;font-size:13.5px;
+letter-spacing:.01em;transition:border-color .18s ease}
+.brief-nav a+a{margin-top:10px}
+.brief-nav a:hover{border-color:var(--ink-3)}
+.brief-nav a:active{transform:scale(.99)}
+.brief-nav .sub{color:var(--ink-3);font-size:12px}
 </style>
 </head>
 <body>
@@ -502,13 +512,15 @@ body.has-ask .wrap{padding-bottom:120px}
     <div class="head-tools">
       <button class="icon-btn" id="langBtn" title="切换语言">EN</button>
       <button class="icon-btn" id="speakBtn" title="朗读今日摘要">♪</button>
-      <button class="icon-btn" id="themeBtn" title="切换主题">◐</button>
+      <button class="icon-btn" id="themeBtn" title="切换主题">◐</button><a class="icon-btn" href="archive/" title="往期简报" style="text-decoration:none">☰</a>
     </div>
   </header>
 
   <div class="dateline" id="dateline"></div>
 
   <div id="app"></div>
+
+  <nav class="brief-nav"><a href="archive/"><span>往期简报</span><span class="sub">最近 7 天</span></a></nav>
 </div>
 
 
