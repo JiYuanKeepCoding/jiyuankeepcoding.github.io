@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-lang="both">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#F6F4EF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Buddy">
+<title>Buddy · 晨间情报</title>
+<style>
+:root{
+  --paper:#F4F1EA; --card:#FFFFFF; --card-2:#FBFAF6;
+  --ink:#17161A; --ink-2:#4B4852; --ink-3:#8A8590;
+  --line:#E5E0D5; --line-2:#EFEBE2;
+  --accent:#1F5C4B; --amber:#B45309;
+  --up:#C0392B; --down:#1E7A54;
+  --shadow:0 1px 2px rgba(30,25,15,.05), 0 8px 24px -12px rgba(30,25,15,.14);
+  --shadow-lg:0 2px 4px rgba(30,25,15,.06), 0 18px 40px -18px rgba(30,25,15,.22);
+  --serif:ui-serif,"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+[data-theme="dark"]{
+  --paper:#100F0D; --card:#1A1917; --card-2:#201E1B;
+  --ink:#F3F0E8; --ink-2:#B7B1A6; --ink-3:#7C776E;
+  --line:#2B2823; --line-2:#232019;
+  --accent:#7CC4A4; --amber:#E0A063;
+  --up:#E4705F; --down:#5FBE94;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  --shadow-lg:0 2px 4px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px; line-height:1.6;
+  transition:background .35s ease,color .35s ease;
+  overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(900px 500px at 50% -180px, rgba(31,92,75,.055), transparent 70%),
+    radial-gradient(700px 400px at 100% 100%, rgba(180,83,9,.045), transparent 70%);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(900px 500px at 50% -180px, rgba(124,196,164,.07), transparent 70%),
+    radial-gradient(700px 400px at 100% 100%, rgba(224,160,99,.05), transparent 70%);
+}
+
+/* ---------- 进度条 ---------- */
+#progress{
+  position:fixed; top:0; left:0; height:2px; width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--amber));
+  z-index:100; transition:width .12s linear;
+}
+
+.wrap{max-width:540px; margin:0 auto; padding:0 20px 64px; position:relative; z-index:1}
+
+/* ---------- 顶栏 ---------- */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px 0 14px; gap:12px;
+}
+.brand{display:flex; align-items:center; gap:9px; font-weight:700; letter-spacing:-.01em; font-size:17px}
+.dot{
+  width:9px;height:9px;border-radius:50%;
+  background:var(--accent); position:relative; flex:none;
+}
+.dot::after{
+  content:""; position:absolute; inset:-4px; border-radius:50%;
+  border:1.5px solid var(--accent); opacity:0;
+  animation:pulse 2.8s ease-out infinite;
+}
+@keyframes pulse{0%{opacity:.55;transform:scale(.7)}70%{opacity:0;transform:scale(1.5)}100%{opacity:0}}
+.brand small{
+  font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); padding-left:9px; margin-left:3px; border-left:1px solid var(--line);
+}
+.head-tools{display:flex; align-items:center; gap:6px}
+.icon-btn{
+  width:34px;height:34px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card); color:var(--ink-2); font-size:15px;
+  display:grid;place-items:center;cursor:pointer;padding:0;
+  transition:all .18s ease;
+}
+.icon-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+[data-theme="dark"] .icon-btn.on{color:#0F211B}
+#langBtn{font-size:11px; font-weight:700; letter-spacing:.02em; font-family:inherit}
+
+/* ---------- 日期带 ---------- */
+.dateline{
+  display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+  padding-bottom:18px; border-bottom:1px solid var(--line);
+  font-size:12.5px; color:var(--ink-3); letter-spacing:.02em;
+}
+.dateline b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+.dateline .sep{width:3px;height:3px;border-radius:50%;background:var(--ink-3);opacity:.5;display:inline-block;transform:translateY(-3px)}
+
+/* ---------- Hero ---------- */
+.hero{padding:30px 0 8px}
+.kicker{
+  font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent); display:flex; align-items:center; gap:8px; margin-bottom:15px;
+}
+.kicker::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.hero h1{
+  font-family:var(--serif); font-weight:600;
+  font-size:26px; line-height:1.34; letter-spacing:-.02em;
+  margin:0 0 14px; text-wrap:balance;
+}
+.hero .zh{
+  font-size:15.5px; line-height:1.85; color:var(--ink-2);
+  margin:0; letter-spacing:.01em;
+}
+.hero-meta{
+  display:flex; gap:14px; flex-wrap:wrap; margin-top:18px;
+  font-size:11.5px; color:var(--ink-3); letter-spacing:.03em;
+}
+.hero-meta i{font-style:normal; font-variant-numeric:tabular-nums}
+
+/* ---------- 市场条 ---------- */
+.ticker-wrap{margin:26px -20px 0; padding:0}
+.ticker{
+  display:flex; gap:9px; overflow-x:auto; padding:4px 20px 12px;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
+}
+.ticker::-webkit-scrollbar{display:none}
+.tick{
+  flex:none; min-width:96px; scroll-snap-align:start;
+  background:var(--card); border:1px solid var(--line);
+  border-radius:14px; padding:10px 12px 9px;
+  box-shadow:var(--shadow);
+}
+.tick .n{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:600; white-space:nowrap}
+.tick .v{font-size:16px; font-weight:650; font-variant-numeric:tabular-nums; letter-spacing:-.02em; margin-top:2px}
+.tick .c{font-size:11.5px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:1px}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--ink-3)}
+
+/* ---------- 筛选 tab ---------- */
+.tabs{
+  position:sticky; top:0; z-index:30;
+  display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;
+  margin:14px -20px 0; padding:12px 20px;
+  background:linear-gradient(to bottom, var(--paper) 62%, transparent);
+  backdrop-filter:blur(8px);
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:none; border:1px solid var(--line); background:var(--card);
+  color:var(--ink-2); font-size:12.5px; font-weight:600; font-family:inherit;
+  padding:7px 14px; border-radius:999px; cursor:pointer;
+  transition:all .2s ease; white-space:nowrap;
+}
+.tab:active{transform:scale(.96)}
+.tab.on{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+[data-theme="dark"] .tab.on{background:var(--ink); color:#100F0D}
+
+/* ---------- 板块标题 ---------- */
+.group{margin-top:30px; animation:fadeUp .5s ease both}
+.group-head{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.group-head .bar{width:3px;height:15px;border-radius:2px;flex:none}
+.group-head h2{margin:0; font-size:13px; font-weight:700; letter-spacing:.06em}
+.group-head .en{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.group-head .cnt{margin-left:auto; font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+
+/* ---------- 卡片 ---------- */
+.card{
+  position:relative; background:var(--card); border:1px solid var(--line);
+  border-radius:19px; padding:19px 18px 16px; margin-bottom:13px;
+  box-shadow:var(--shadow);
+  transition:box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+.card.pending{opacity:0; transform:translateY(14px)}
+.card.in{opacity:1; transform:none; transition:opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1), box-shadow .25s ease, border-color .25s ease}
+.card:active{transform:scale(.995)}
+.card.flash{border-color:var(--amber)}
+.card-top{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+.pill{
+  --sec:#888888;
+  font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  padding:3.5px 9px; border-radius:7px; white-space:nowrap;
+  background:rgba(120,120,120,.12); color:var(--sec);
+  background:color-mix(in srgb, var(--sec) 12%, transparent);
+}
+[data-theme="dark"] .pill{
+  background:color-mix(in srgb, var(--sec) 20%, transparent);
+  color:color-mix(in srgb, var(--sec) 38%, #ffffff);
+}
+.imp{display:flex; gap:2.5px; margin-left:auto; align-items:center}
+.imp i{width:4px;height:4px;border-radius:50%;background:var(--line);display:block}
+.imp i.f{background:var(--amber)}
+.save{
+  background:none;border:none;padding:2px 0 2px 8px;cursor:pointer;
+  color:var(--ink-3); font-size:15px; line-height:1; font-family:inherit;
+  transition:transform .2s ease, color .2s ease;
+}
+.save:active{transform:scale(1.3)}
+.save.on{color:var(--amber)}
+
+.t-en{
+  font-family:var(--serif); font-weight:600; font-size:20px; line-height:1.32;
+  letter-spacing:-.015em; margin:0 0 9px;
+}
+.b-en{
+  font-size:14.5px; line-height:1.66; color:var(--ink-2); margin:0;
+  letter-spacing:.004em;
+}
+.divider{
+  display:flex; align-items:center; gap:10px; margin:15px 0 13px;
+  font-size:9.5px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:700;
+}
+.divider::before,.divider::after{content:""; height:1px; background:var(--line-2); flex:1}
+.divider::before{flex:0 0 22px}
+.t-zh{font-size:16.5px; font-weight:650; line-height:1.55; margin:0 0 8px; letter-spacing:-.005em}
+.b-zh{font-size:14.5px; line-height:1.88; color:var(--ink-2); margin:0; letter-spacing:.012em}
+
+.why{
+  margin-top:14px; padding:12px 13px 12px 14px;
+  background:var(--card-2); border-radius:12px;
+  border-left:2.5px solid var(--amber);
+}
+.why b{
+  display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--amber); margin-bottom:5px; font-weight:700;
+}
+.why p{margin:0; font-size:13.5px; line-height:1.8; color:var(--ink-2); letter-spacing:.01em}
+
+.card-foot{
+  display:flex; align-items:center; gap:8px; margin-top:14px;
+  font-size:10.5px; color:var(--ink-3); letter-spacing:.03em;
+}
+.card-foot a{margin-left:auto; color:var(--ink-3); text-decoration:none; border-bottom:1px dotted var(--line); padding-bottom:1px}
+.card-foot a:hover{color:var(--accent); border-color:var(--accent)}
+
+/* ---------- 语言模式 ---------- */
+[data-lang="zh"] .t-en,[data-lang="zh"] .b-en,[data-lang="zh"] .divider{display:none}
+[data-lang="zh"] .t-zh{font-size:18px}
+[data-lang="en"] .t-zh,[data-lang="en"] .b-zh,[data-lang="en"] .divider,[data-lang="en"] .why{display:none}
+[data-lang="en"] .hero .zh{display:none}
+[data-lang="en"] .t-en{font-size:21px}
+[data-lang="zh"] .hero h1{display:none}
+
+/* ---------- 认知卡 ---------- */
+.insight{
+  margin-top:38px; border-radius:22px; overflow:hidden;
+  background:linear-gradient(165deg,#17332B 0%, #10241E 60%, #0D1D18 100%);
+  color:#EFEDE4; padding:26px 22px 24px;
+  box-shadow:var(--shadow-lg); position:relative;
+}
+[data-theme="dark"] .insight{
+  background:linear-gradient(165deg,#1C3B31 0%, #14291F 60%, #0F2018 100%);
+  border:1px solid rgba(124,196,164,.16);
+}
+.insight::after{
+  content:""; position:absolute; top:-60px; right:-50px; width:200px; height:200px;
+  border-radius:50%; background:radial-gradient(circle,rgba(224,160,99,.22),transparent 68%);
+}
+.ins-kicker{
+  font-size:9.5px; letter-spacing:.24em; text-transform:uppercase;
+  color:#D9A66B; font-weight:700; margin-bottom:14px;
+  display:flex; align-items:center; gap:8px; position:relative; z-index:1;
+}
+.insight h2{
+  font-family:var(--serif); font-size:22px; font-weight:600; line-height:1.3;
+  margin:0 0 6px; letter-spacing:-.015em; position:relative; z-index:1;
+}
+.insight .h2-zh{
+  font-family:var(--sans); font-size:15px; font-weight:600; color:#C9C5B8;
+  margin:0 0 16px; letter-spacing:.02em; position:relative; z-index:1;
+}
+.insight p{
+  font-size:13.5px; line-height:1.78; color:#BEB9AC; margin:0 0 12px;
+  position:relative; z-index:1;
+}
+.insight .zh-body{font-size:14px; line-height:1.9; color:#DCD8CB; letter-spacing:.012em}
+.insight .q{
+  margin-top:18px; padding-top:16px; border-top:1px solid rgba(255,255,255,.1);
+  font-size:14px; line-height:1.85; color:#F2EEE0; position:relative; z-index:1;
+}
+.insight .q::before{
+  content:"?"; display:inline-grid; place-items:center;
+  width:17px;height:17px; border-radius:50%;
+  background:rgba(224,160,99,.2); color:#E8B87F;
+  font-size:11px; font-weight:700; margin-right:7px; vertical-align:1px;
+}
+[data-lang="en"] .insight .zh-body,[data-lang="en"] .insight .h2-zh,[data-lang="en"] .insight .q{display:none}
+[data-lang="zh"] .insight h2,[data-lang="zh"] .insight p.en-body{display:none}
+[data-lang="zh"] .insight .h2-zh{font-size:19px;color:#fff;font-weight:700;margin-bottom:14px}
+
+/* ---------- 明日关注 ---------- */
+.watch{margin-top:34px}
+.watch h3{
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:700; margin:0 0 13px;
+  display:flex; align-items:center; gap:9px;
+}
+.watch h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.w-item{
+  display:flex; gap:12px; padding:11px 0; border-bottom:1px solid var(--line-2);
+  font-size:13.5px; line-height:1.66; color:var(--ink-2);
+}
+.w-item:last-child{border-bottom:none}
+.w-item .when{
+  flex:none; width:42px; font-size:10.5px; font-weight:700; color:var(--accent);
+  letter-spacing:.04em; padding-top:2.5px; font-variant-numeric:tabular-nums;
+}
+
+footer{
+  margin-top:40px; padding-top:22px; border-top:1px solid var(--line);
+  font-size:11px; line-height:1.85; color:var(--ink-3); letter-spacing:.02em;
+}
+footer .f-brand{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-weight:600;font-size:12px;margin-bottom:9px}
+footer .f-brand .dot{width:6px;height:6px}
+footer .f-brand .dot::after{display:none}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+@media (min-width:640px){
+  .hero h1{font-size:30px}
+  .wrap{padding-bottom:90px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .card,.card.pending{opacity:1!important;transform:none!important}
+}
+
+/* ---------- Ask AI：浮标 ---------- */
+.ask-fab{
+  position:fixed; right:18px; bottom:20px; z-index:80;
+  height:48px; padding:0 17px 0 13px; border-radius:999px;
+  border:none; background:var(--accent); color:#fff;
+  display:flex; align-items:center; gap:7px;
+  font-family:inherit; font-size:13.5px; font-weight:700; letter-spacing:.02em;
+  box-shadow:0 8px 22px -8px rgba(31,92,75,.6), 0 2px 5px rgba(30,25,15,.18);
+  cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, opacity .2s ease;
+}
+[data-theme="dark"] .ask-fab{color:#0F211B}
+.ask-fab:active{transform:scale(.94)}
+.ask-fab svg{width:15px;height:15px;display:block}
+.ask-fab.hide{opacity:0;pointer-events:none;transform:scale(.9)}
+body.has-ask .wrap{padding-bottom:120px}
+
+/* ---------- Ask AI：面板 ---------- */
+.ask-scrim{
+  position:fixed; inset:0; z-index:90;
+  background:rgba(18,16,12,.44); backdrop-filter:blur(2px);
+  opacity:0; pointer-events:none; transition:opacity .3s ease;
+}
+.ask-scrim.on{opacity:1;pointer-events:auto}
+
+.ask-sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:95;
+  height:78vh; max-height:78vh;
+  display:flex; flex-direction:column;
+  background:var(--card); border:1px solid var(--line); border-bottom:none;
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -14px 44px -14px rgba(30,25,15,.34);
+  transform:translateY(102%);
+  transition:transform .34s cubic-bezier(.22,.9,.28,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.ask-sheet.on{transform:none}
+@media (min-width:640px){
+  .ask-sheet{left:calc(50% - 270px); right:calc(50% - 270px)}
+}
+
+.ask-head{
+  display:flex; align-items:center; gap:9px;
+  padding:16px 18px 12px; border-bottom:1px solid var(--line-2); flex:none;
+}
+.ask-head .ttl{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.ask-head .ttl .dot{width:7px;height:7px}
+.ask-head .ttl .dot::after{display:none}
+.ask-head .sub{font-size:10.5px;color:var(--ink-3);letter-spacing:.06em;font-weight:600;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.ask-quota{
+  margin-left:auto; flex:none; display:inline-flex; align-items:center; gap:5px;
+  height:24px; padding:0 9px; border-radius:20px; cursor:pointer;
+  border:1px solid var(--line); background:transparent; color:var(--ink-3);
+  font-family:inherit; font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  white-space:nowrap; transition:background .2s,color .2s,border-color .2s;
+}
+.ask-quota:active{transform:scale(.96)}
+.ask-quota.warn{color:#B4552F;border-color:rgba(180,85,47,.45)}
+.ask-quota.out{background:#B4552F;border-color:#B4552F;color:#fff}
+.ask-head .ask-x{margin-left:8px}
+.ask-x{
+  margin-left:auto; width:30px;height:30px;border-radius:9px;
+  border:1px solid var(--line); background:transparent; color:var(--ink-3);
+  font-family:inherit; font-size:13px; cursor:pointer; display:grid;place-items:center;
+}
+.ask-x:active{transform:scale(.92)}
+
+.ask-log{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 18px 6px}
+.ask-log::-webkit-scrollbar{width:0}
+.msg{display:flex; margin-bottom:13px; animation:fadeUp .3s ease both}
+.msg.u{justify-content:flex-end}
+.bub{
+  max-width:87%; border-radius:16px; padding:10px 14px;
+  font-size:14px; line-height:1.8; letter-spacing:.01em; word-break:break-word;
+}
+.msg.u .bub{background:var(--accent); color:#fff; border-bottom-right-radius:5px; font-size:14px}
+[data-theme="dark"] .msg.u .bub{color:#0F211B}
+.msg.b .bub{
+  background:var(--card-2); border:1px solid var(--line); color:var(--ink-2);
+  border-bottom-left-radius:5px;
+}
+.bub strong{color:var(--ink); font-weight:700}
+[data-theme="dark"] .msg.u .bub strong{color:#0F211B}
+.bub ul{margin:6px 0; padding-left:16px}
+.bub li{margin:3px 0}
+.bub .src{display:block;margin-top:8px;font-size:11px;color:var(--ink-3);letter-spacing:.03em}
+.msg.err .bub{background:rgba(192,57,43,.08); border-color:rgba(192,57,43,.3); color:var(--up)}
+
+.think{display:inline-flex; gap:4px; align-items:center; padding:3px 0}
+.think i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);opacity:.4;animation:blink 1.2s infinite}
+.think i:nth-child(2){animation-delay:.18s}
+.think i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:.9;transform:translateY(-2px)}}
+
+.ask-chips{
+  display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;
+  padding:8px 18px 10px; flex:none;
+}
+.ask-chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:none; border:1px solid var(--line); background:var(--card-2);
+  color:var(--ink-2); font-family:inherit; font-size:12px; font-weight:600;
+  padding:7px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
+  transition:all .18s ease;
+}
+.chip:active{transform:scale(.96); border-color:var(--accent); color:var(--accent)}
+
+.ask-form{
+  display:flex; align-items:flex-end; gap:8px; flex:none;
+  padding:10px 18px 12px; border-top:1px solid var(--line-2);
+}
+.ask-mic{
+  flex:none; width:40px; height:40px; border-radius:13px;
+  border:1px solid var(--line); background:var(--card-2); color:var(--ink-2);
+  display:grid; place-items:center; cursor:pointer; padding:0;
+  transition:all .2s ease; touch-action:none;
+}
+.ask-mic svg{width:16px;height:16px}
+.ask-mic.on{background:var(--up); border-color:var(--up); color:#fff; transform:scale(1.06)}
+.ask-mic.on::after{content:"";position:absolute;width:40px;height:40px;border-radius:13px;border:2px solid var(--up);animation:micring 1.3s ease-out infinite}
+@keyframes micring{0%{opacity:.6;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}
+.ask-mic.na{opacity:.5}
+#askInput{
+  flex:1; min-width:0; min-height:40px; max-height:120px; resize:none;
+  border:1px solid var(--line); border-radius:13px; background:var(--card-2);
+  color:var(--ink); font-family:inherit; font-size:14.5px; line-height:1.5;
+  padding:10px 12px; outline:none; transition:border-color .18s ease;
+}
+#askInput:focus{border-color:var(--accent)}
+#askInput::placeholder{color:var(--ink-3)}
+.ask-send{
+  flex:none; width:40px;height:40px;border-radius:13px;border:none;
+  background:var(--accent); color:#fff; font-size:16px; font-weight:700;
+  cursor:pointer; display:grid; place-items:center; padding:0;
+  transition:all .18s ease;
+}
+[data-theme="dark"] .ask-send{color:#0F211B}
+.ask-send:disabled{opacity:.35}
+.ask-send:active{transform:scale(.93)}
+.ask-hint{
+  flex:none; padding:0 18px 8px; font-size:11px; color:var(--ink-3);
+  letter-spacing:.03em; min-height:15px;
+}
+.ask-hint.live{color:var(--up); font-weight:600}
+
+/* 卡片上的「问这条」 */
+.ask-inline{
+  margin-left:10px; border:1px solid var(--line); background:var(--card-2);
+  color:var(--ink-3); font-family:inherit; font-size:10.5px; font-weight:600;
+  padding:3px 9px; border-radius:7px; cursor:pointer; letter-spacing:.02em;
+  transition:all .18s ease;
+}
+.ask-inline:active{transform:scale(.94); border-color:var(--accent); color:var(--accent)}
+</style>
+<meta name="robots" content="noindex,nofollow">
+<!-- bb-mw2r5svk -->
+<style>
+/* 线上静态版：无 server，隐藏问 AI 入口 */
+.ask-inline{display:none!important}
+/* 往期导航卡片 */
+.brief-nav{margin:30px 0 0;font-family:var(--sans)}
+.brief-nav a{display:flex;justify-content:space-between;align-items:center;gap:16px;
+padding:15px 18px;border:1px solid var(--line);border-radius:14px;
+background:var(--card);color:var(--ink);text-decoration:none;font-size:13.5px;
+letter-spacing:.01em;transition:border-color .18s ease}
+.brief-nav a+a{margin-top:10px}
+.brief-nav a:hover{border-color:var(--ink-3)}
+.brief-nav a:active{transform:scale(.99)}
+.brief-nav .sub{color:var(--ink-3);font-size:12px}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span>Buddy<small>Morning Brief</small></div>
+    <div class="head-tools">
+      <button class="icon-btn" id="langBtn" title="切换语言">EN</button>
+      <button class="icon-btn" id="speakBtn" title="朗读今日摘要">♪</button>
+      <button class="icon-btn" id="themeBtn" title="切换主题">◐</button><a class="icon-btn" href="../" title="回今天的简报" style="text-decoration:none">今</a>
+    </div>
+  </header>
+
+  <div class="dateline" id="dateline"></div>
+
+  <div id="app"></div>
+
+  <nav class="brief-nav"><a href="../"><span>回今天的简报</span><span class="sub">最新一期</span></a><a href="./"><span>往期简报</span><span class="sub">最近 7 天</span></a></nav>
+</div>
+
+
+
+<script>
+/* Buddy Morning Brief — 数据文件
+ * 每天由 Buddy 更新此文件即可，index.html 无需改动。
+ * 字段说明见 README.md
+ */
+window.BRIEFING = {
+  meta: {
+    date: "2026-11-05",
+    issue: "012",
+    readMinutes: 10,
+    generatedAt: "2026-11-05 07:30 GMT+8",
+    tldr_en: "Democrats won both chambers of Congress, and the market split the same news into two opposite trades: the Dow jumped 1,569 points, or 3.03%, while the Philadelphia Semiconductor Index fell 3.13% and Micron dropped 7%. Oil fell 8.3% on bets that the war with Iran is closer to ending, even as Iran shot down a US drone over Qeshm the same day. The 10-year yield dropped 7 basis points and the longest-duration assets fell hardest, which tells you what was repriced: not the discount rate, but the date on the cash flow.",
+    tldr_zh: "民主党拿下参众两院，市场把同一条消息做成了两笔方向相反的交易：道指暴涨 1569 点、涨幅 3.03%，费城半导体指数却跌 3.13%、美光跌 7%。油价因「伊朗战事更接近结束」的押注跌 8.3%——而同一天，伊朗在格什姆岛上空击落了一架美军无人机。十年期美债收益率还降了 7 个基点，最长久期的资产却跌得最狠：被重新定价的不是折现率，是现金流发生的年份。",
+    footer: "每天 07:30 更新。内容由 Buddy 从公开信源整理，中英文对照仅供阅读与语言学习，不构成任何投资建议。"
+  },
+
+  pulse: [
+    { label: "Brent",   value: "94.62",   change: "-8.67%", dir: "down" },
+    { label: "WTI",     value: "88.12",   change: "-8.29%", dir: "down" },
+    { label: "S&P 500", value: "7,689",   change: "+1.58%", dir: "up" },
+    { label: "Dow",     value: "53,356",  change: "+3.03%", dir: "up" },
+    { label: "Nasdaq",  value: "25,737",  change: "+1.44%", dir: "up" },
+    { label: "US 10Y",  value: "4.89%",   change: "-7bp",   dir: "down" },
+    { label: "Gold",    value: "4,060",   change: "+3.32%", dir: "up" },
+    { label: "BTC",     value: "80,592",  change: "+4.14%", dir: "up" }
+  ],
+
+  sections: [
+    {
+      id: "markets", name: "财经市场", nameEn: "Markets", color: "#B45309",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "A Blue Wave Lifts the Dow 1,569 Points, and Cash Flow Leads",
+            body: "The Dow rose 1,569.40 points, or 3.03%, to 53,356.12, the S&P 500 added 119.70 points, or 1.58%, to 7,688.62, and the Nasdaq gained 364.50 points, or 1.44%, to 25,736.51. Nine of the eleven S&P sectors advanced. Consumer discretionary led with 4.27% and financials with 3.46%, while energy fell 4.77% and industrials 1.11%. The mega-caps did the heavy lifting: Microsoft rose 6.68%, Amazon 6.12%, Apple 5.31% and Alphabet 3.25%, adding roughly $1 trillion of market value between the four in a single session. Nvidia fell 3.17% and Tesla 3.34%. The VIX dropped 3.87 points to 16.97 and the dollar index eased 0.35% to 101.51. The macro data was not the reason: the ISM services index came in at 54.5 for October against 54.8 expected and 54.9 prior. What moved was the removal of a political unknown. Compilations of past cycles note that in 15 elections that produced divided government, the S&P 500 was higher a year later in 14 of them, with an average gain of about 15%.",
+          },
+          zh: {
+            title: "蓝色浪潮把道指推高 1569 点，涨的是有现金流的那一批",
+            body: "道指涨 1569.40 点、涨幅 3.03% 报 53356.12 点；标普 500 涨 119.70 点、涨幅 1.58% 报 7688.62 点；纳指涨 364.50 点、涨幅 1.44% 报 25736.51 点。标普十一大板块九涨二跌：非必需消费品涨 4.27%、金融涨 3.46% 领涨，能源跌 4.77%、工业跌 1.11%。撑起指数的是巨头：微软涨 6.68%、亚马逊涨 6.12%、苹果涨 5.31%、谷歌涨 3.25%，四家单日市值合计增加约 1 万亿美元；英伟达跌 3.17%、特斯拉跌 3.34%。VIX 跌 3.87 点至 16.97，美元指数跌 0.35% 报 101.51。宏观数据并不是原因：10 月 ISM 非制造业指数 54.5，低于预期的 54.8 和前值 54.9。真正被拿掉的是一个政治未知数。有机构汇总历史情形称，在形成「分治政府」的 15 次选举后，标普 500 一年后有 14 次上涨，平均涨幅约 15%。"
+          },
+          why: "ISM 服务业还低于预期，指数却涨了 3%——这轮涨的不是盈利，是「不确定性被拿掉」本身。板块表比点位更诚实：消费和金融涨、能源跌，钱赌的是「战争结束→油价回落→通胀回落→消费和信贷喘口气」，不是赌增长回来了。",
+          source: "新华社",
+          url: "https://my-h5news.app.xinhuanet.com/h5/article.html?articleId=202611058a6bdb48b9c54db097a614f91a234ac8"
+        },
+        {
+          importance: 3,
+          en: {
+            title: "The AI Hardware Chain Is Marked Down While Its Customers Rally",
+            body: "The Philadelphia Semiconductor Index fell 3.13% on a day the Dow rose 3%. Memory was hit hardest: Seagate dropped 8.13%, SanDisk 7.91%, Micron 7.00%, Western Digital 6.77% and SK Hynix 5.12%. The neoclouds that borrow to build: CoreWeave fell 9%, Nebius 7%. Optical and interconnect: Credo 9.55%, Ciena more than 9%, Marvell 7.08%, Lumentum more than 7%, Coherent 5.93%. Cooling and power equipment, which only ships when a new building breaks ground: Vertiv fell nearly 12%. The trigger was political. After Democrats swept Congress, investors began pricing tighter scrutiny of AI, and of the approvals, power and water that new data centres need; that undermines the demand base for the companies supplying high-speed networking and optics into those buildings. The earnings themselves have not cracked — memory makers are still posting record quarters — but the multiple applied to 2027 and 2028 supply is being compressed. Nvidia fell 3.17% and Broadcom 2%, less than optics and cooling, because their demand anchor is the installed base rather than the next groundbreaking.",
+          },
+          zh: {
+            title: "AI 硬件链被砍，它的客户在同一天创新高",
+            body: "道指涨 3% 的这一天，费城半导体指数跌 3.13%。存储跌得最狠：希捷跌 8.13%、闪迪跌 7.91%、美光跌 7.00%、西部数据跌 6.77%、SK 海力士跌 5.12%。靠借钱建机房的新云厂：CoreWeave 跌 9%、Nebius 跌 7%。光通信与互联：Credo 跌 9.55%、Ciena 跌超 9%、迈威尔跌 7.08%、Lumentum 跌超 7%、Coherent 跌 5.93%。只有新楼开工才出货的液冷与供电：维谛技术跌近 12%。导火索是政治。民主党横扫国会之后，市场开始给「AI 监管收紧」以及新建数据中心要过的审批、电力、用水三关定价，这直接动摇了为机房提供高速网络与光模块的公司的需求根基。财报本身并没有崩——存储厂还在交创纪录的季度——被压的是给 2027、2028 年产能的那个估值倍数。英伟达跌 3.17%、博通跌 2%，跌幅小于光通信和液冷，因为它们的需求锚是已装机的存量，而不是下一栋楼。"
+          },
+          why: "同一条消息，客户涨、供应商跌。被砍掉的不是当期收入，是「下一栋楼」的日期。判断 AI 硬件是真见顶还是只被杀估值，别盯库存和业绩，盯云厂下一份财报里 CapEx 指引的斜率。",
+          source: "新浪财经（中国经营报）",
+          url: "https://k.sina.com.cn/article_1650111241_625ab30904001i0fc.html"
+        },
+        {
+          importance: 3,
+          en: {
+            title: "STAR 50 Jumps 9.92% as A-Share Turnover Tops 2 Trillion Yuan Again",
+            body: "One session after the STAR 50 fell 3.81%, Chinese equities reversed violently. The Shanghai Composite rose 2.16% to 3,686.17, the Shenzhen Component 4.22% to 11,335.69, the ChiNext 6.40% to 2,544.73, the STAR 50 9.92% to 1,265.47 and the STAR Composite 9.90%. Turnover across the three exchanges reached about 2.05 trillion yuan, up 336.8 billion from the prior session and the first time above 2 trillion since September 22. Advancers outnumbered decliners 4,667 to 779, with 121 limit-ups against 10 limit-downs. The Shenwan semiconductor index rose 11.41%, electronics 9.74%, telecom 7.05% and non-ferrous metals 5.34%; food and beverage fell 1.79%, coal 0.98% and oil and petrochemicals 0.94%. Stock ETFs had drawn net inflows for 22 consecutive sessions through November 3, about 555.9 billion yuan in total, and ETF turnover on November 4 rose 118.68 billion to 705.87 billion, with the E Fund ChiNext ETF at 20.2 billion and the Huaxia STAR 50 ETF at 19.06 billion. Fund managers cited three drivers: the PBOC cutting the relending rate for share buybacks to 1% and making it a permanent facility, an oversold technology sector, and the US election clearing.",
+          },
+          zh: {
+            title: "科创 50 涨 9.92%，A 股成交额重回 2 万亿",
+            body: "科创 50 前一天才跌 3.81%，第二天就掉头。上证指数涨 2.16% 报 3686.17 点，深证成指涨 4.22% 报 11335.69 点，创业板指涨 6.40% 报 2544.73 点，科创 50 涨 9.92% 报 1265.47 点，科创综指涨 9.90%。沪深北三市成交额约 2.05 万亿元、较前一日增加 3368 亿元，为 9 月 22 日以来首次站上 2 万亿。全市场 4667 只个股上涨、779 只下跌，121 只涨停、10 只跌停。申万半导体指数涨 11.41%，电子涨 9.74%、通信涨 7.05%、有色金属涨 5.34%；食品饮料跌 1.79%、煤炭跌 0.98%、石油石化跌 0.94%。截至 11 月 3 日，股票型 ETF 已连续 22 个交易日净流入、累计约 5559 亿元；11 月 4 日全市场 ETF 成交额增加 1186.8 亿元至 7058.7 亿元，创业板 ETF 易方达、科创 50ETF 华夏分别成交 202 亿元和 190.59 亿元。基金经理给出三个原因：央行把股票回购增持再贷款利率降到 1% 并转为长期制度安排、科技板块前期跌得充分、美国中期选举落地。"
+          },
+          why: "同一个市场、同一批政策，两天前是「托而不举」（科创 50 跌 3.81%、成交 1.72 万亿），今天是「半导体涨停潮」（+11.41%、2.05 万亿）。两天结论完全相反，说明这类反弹定价的是仓位，不是基本面——所以验证指标只有一个：成交额能不能连续站住 2 万亿、两融余额止不止跌。",
+          source: "中国经济网",
+          url: "https://www.ce.cn/xwzx/gnsz/gdxw/202611/t20261105_3283832.shtml"
+        }
+      ]
+    },
+
+    {
+      id: "geopolitics", name: "地缘政策", nameEn: "Geopolitics", color: "#8B2E2E",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Democrats Take Both Chambers, and the Veto Becomes the Only Majority",
+            body: "US networks projected on the night of November 3 that Democrats would win control of both the House and the Senate, a result described across US media as a blue wave. NBC projected 258 House seats against the 218 needed for a majority, which would be the party's largest advantage in 33 years. CNN projected more than 54 Senate seats, with Democrats taking seven Republican-held seats in Texas, Ohio, Maine, Iowa, Kansas, North Carolina and South Carolina. In Texas, Representative James Talarico beat Attorney General Ken Paxton to become the first Democratic senator from the state since 1988, and Gina Hinojosa beat Governor Greg Abbott to become its first Democratic governor in more than 30 years. The Associated Press noted that since the Second World War, both chambers have flipped in the same midterm only three times: 1946, 1994 and 2006. A CNN poll published on November 3 found about 60% of voters disapproved of the administration's performance, about 75% were dissatisfied or angry about the country's direction, and about 70% wanted Congress to check presidential power. Trump accepted the result, said Republicans lost because he was not on the ballot, and stressed that he retains the veto, which requires two-thirds of both chambers to override.",
+          },
+          zh: {
+            title: "民主党拿下两院，否决权成了唯一还在手的多数",
+            body: "美国多家媒体 11 月 3 日夜间预测，民主党将同时夺回众议院和参议院控制权，媒体称之为「蓝色浪潮」。全国广播公司预测民主党将在众议院拿到 258 席（多数门槛 218 席），为 33 年来最大优势；CNN 预测其参议院席位超过 54 席，从共和党手中拿下得克萨斯、俄亥俄、缅因、艾奥瓦、堪萨斯、北卡罗来纳、南卡罗来纳七个席位。在得州，众议员詹姆斯·塔拉里科击败总检察长肯·帕克斯顿，成为 1988 年以来该州首位民主党参议员；吉娜·伊诺霍萨击败州长格雷格·阿博特，成为该州 30 多年来首位民主党州长。美联社指出，二战后同一次中期选举里两院同时易主，历史上只发生过三次：1946 年、1994 年、2006 年。CNN 11 月 3 日民调显示，约 60% 选民不认可现政府执政表现，约 75% 对国家方向感到不满或愤怒，约 70% 希望国会制衡总统权力。特朗普表示接受结果，称共和党输在「他不在选票上」，并强调自己仍握有否决权——推翻否决需要两院各三分之二。"
+          },
+          why: "民主党拿到的是「否决否决权」：法案过不了，但人事确认、战争拨款、AI 监管的调查权全在手里。所以未来两年最值得盯的不是新法案，而是旧政策推不动——关税升级、数据中心审批、对伊军费，都从「总统说了算」变成「要谈」。",
+          source: "人民网（新华社）",
+          url: "https://world.people.com.cn/n1/2026/1104/c1002-40827786.html"
+        },
+        {
+          importance: 3,
+          en: {
+            title: "Oil Falls 8.3% on a Bet the War Is Ending, While Iran Shoots Down a US Drone",
+            body: "WTI for December fell $7.97, or 8.29%, to $88.12 a barrel, and Brent for January fell $8.98, or 8.67%, to $94.62, taking the week's cumulative decline past 17%. Vice President JD Vance wrote on social media that Republicans lost the election because of the war and that the president had said so himself the night before. Andy Lipow of Lipow Oil Associates said the result is making the market think Trump may now be more inclined to reach a deal, and that Democrats may try to restrict funding for the war; Dennis Kissler of BOK Financial said Democratic control could tighten US military spending in the Middle East. Trump told the Financial Times on November 3 that there was no plan to strike Iran immediately but that the US was ready. On the same day, Iran's Revolutionary Guard said it shot down a US MQ-1 drone over Qeshm Island, and Yemen's Houthis claimed a ballistic missile strike on Riyadh's King Khalid International Airport. Physical supply has not normalised: Vortexa put October flows through Hormuz at 17.1 million barrels a day excluding LPG, down from 18.9 million in September and still only about 75% of the pre-war level. EIA data showed US crude stocks down 865,000 barrels, a fifth straight draw, with distillate stocks at 99.26 million barrels, the lowest since May 2003. The cross-asset chain ran the other way: the 10-year Treasury yield fell 7 basis points to 4.89%, its lowest close in two months, the 10-year breakeven inflation rate dropped to its lowest since August, spot gold rose 3.32% to $4,060.18 an ounce and silver 4.87% to $52.23; Citi set a 0-3 month gold target of $4,500 and a 6-12 month target of $5,000.",
+          },
+          zh: {
+            title: "油价跌 8.3%，赌的是战争会结束——同一天伊朗击落美军无人机",
+            body: "12 月交货的 WTI 跌 7.97 美元、跌幅 8.29% 报每桶 88.12 美元；1 月交货的布伦特跌 8.98 美元、跌幅 8.67% 报 94.62 美元，本周累计跌幅已超过 17%。副总统万斯在社交媒体上写道，共和党输掉选举是因为这场战争，「总统本人昨晚也这么说过」。利波石油咨询总裁安迪·利波表示，选举结果让市场认为特朗普现在可能更倾向于达成协议，民主党也可能试图限制战争拨款；BOK 金融的丹尼斯·基斯勒称，民主党掌控国会可能收紧美国在中东的军费。特朗普 11 月 3 日对英国《金融时报》说，没有立即打击伊朗的计划，但随时「严阵以待」。同一天，伊朗革命卫队称在格什姆岛上空击落一架美军 MQ-1 无人机，也门胡塞武装称用弹道导弹打击了利雅得哈立德国王国际机场。实物供应并没有恢复：Vortexa 数据显示，10 月霍尔木兹海峡日均通行原油、凝析油及炼化产品 1710 万桶（不含液化石油气），低于 9 月的 1890 万桶，仍只有战前约 75%。美国能源信息局数据显示，上周美国商业原油库存减少 86.5 万桶、连续第五周下降，馏分油库存降至 9926 万桶、为 2003 年 5 月以来最低。跨资产的链条反向走：十年期美债收益率跌 7 个基点至 4.89%，为两个月最低收盘；十年期盈亏平衡通胀率降至 8 月以来最低；现货黄金涨 3.32% 报 4060.18 美元/盎司，白银涨 4.87% 报 52.23 美元。花旗给出黄金 0 至 3 个月目标价 4500 美元、6 至 12 个月 5000 美元。"
+          },
+          why: "这 8% 定的是「谁有动机结束战争」，不是「战争已经结束」——同一天伊朗打下美军无人机、胡塞打利雅得机场，霍尔木兹通行量还只有战前 75%。政治概率的定价可以一口气还回去；真正的确认信号是海峡通行量回到 1890 万桶/日以上，而不是哪一方的通稿。",
+          source: "中国金融信息网（新华财经）",
+          url: "https://m.cnfin.com/yw-lb//zixun/20261105/4491182_1.html"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Talks in Abu Dhabi, Drills in Poland, in the Same Week",
+            body: "The Kremlin confirmed that Russian, US and Ukrainian officials will hold talks in Abu Dhabi on November 10-11, with the Russian delegation led by presidential aide Yuri Medinsky, who remains Moscow's chief negotiator. Ukrainian President Volodymyr Zelensky said on November 4 that he had held a call of about 90 minutes with US envoy Steve Witkoff and Jared Kushner about the coming talks, that Ukraine had submitted its proposals to the US side, that it wants the process accelerated, and that it needs more air-defence interceptors. Separately, the British and French defence ministries said the multinational force of the coalition of the willing will hold its first exercise in Poland from November 9 to 22, with about 2,800 troops from 11 countries, including 1,100 from France and 300 from Britain, around Nowa Deba about 100 km from the Ukrainian border. The stated purpose is to test how quickly forces could deploy to Ukraine after a peace deal.",
+          },
+          zh: {
+            title: "同一周：阿布扎比谈判，波兰演习",
+            body: "俄方证实，俄罗斯、美国、乌克兰三方将于 11 月 10 日至 11 日在阿联酋阿布扎比举行会谈，俄方代表团由总统助理梅金斯基率领，他继续担任俄方首席谈判代表。乌克兰总统泽连斯基 11 月 4 日表示，他与美国总统特使威特科夫、库什纳就即将举行的三方会谈通了约一个半小时电话，乌方已向美方提交相关建议，希望加快谈判进程，并呼吁美国提供更多防空拦截弹。另外，英法两国国防部表示，援乌「志愿联盟」旗下多国部队将于 11 月 9 日至 22 日在波兰举行首次演习，来自 11 个国家的约 2800 名军人参加，其中法国 1100 人、英国 300 人，地点在距乌克兰边境约 100 公里的新登巴一带；公开说法是测试和平协议签署后向乌克兰部署部队的速度。"
+          },
+          why: "谈判和演习排在同一周，说明各方都在给「谈成之后」提前定价——演习测的是部署速度，也就是给莫斯科的信号：即使签了字，部队几周内就能到位。这种「先布置、后谈判」的顺序，通常意味着这一轮的目标是把停火线固定下来，而不是解决领土。",
+          source: "环球网（央视新闻）",
+          url: "https://www.huanqiu.com/article/4TthHFz2c0u"
+        }
+      ]
+    },
+
+    {
+      id: "tech", name: "科技圈", nameEn: "Technology", color: "#1F5C8B",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Tencent's Hunyuan Hy4 Ships at 770 Billion Parameters, With Eyes and Hands",
+            body: "Tencent released the formal version of its Hunyuan Hy4 model on November 4. The Hy3 series had fewer than 300 billion parameters; Hy4 reaches 770 billion, and the company says Hy5 will be larger again. Hy4 adds visual understanding for the first time and, for the first time, Computer Use, mixing command-line and graphical-interface operation, with additional training on professional software including Blender and CAD. Tencent says the model now enters the top tier of open-weight models and will release the weights in the near future, while acknowledging that a gap to the leading closed models remains. The company also stressed long-horizon agent work, where tasks stretch from minutes to hours rather than a single answer.",
+          },
+          zh: {
+            title: "腾讯混元 Hy4 正式版：770B 参数，第一次能看、能动手",
+            body: "腾讯 11 月 4 日发布混元 Hy4 正式版。Hy3 系列参数不到 3000 亿，Hy4 达到 7700 亿，下一代 Hy5 规模还会更大。Hy4 首次引入视觉理解能力，也首次支持「电脑操作」——命令行与图形界面混用；并针对 Blender、CAD 等专业软件做了专项训练。腾讯称其首次跻身最强开源模型阵营，并将在近期开源模型权重，同时承认与顶尖闭源模型仍有差距。官方强调的另一条线是长程智能体：任务从「一次回答」拉长到分钟级、小时级。"
+          },
+          why: "7700 亿不是重点，重点是三条线同时补齐：能看、能动手、能跑长任务。开源模型从「能对标」走到「敢托付」，中间隔的不是 benchmark 分数，是任务通过率和幻觉率这种不好看的数字——这也是判断它能不能进生产环境的唯一标准。",
+          source: "每日经济新闻",
+          url: "https://www.mrjjxw.com/articles/2026-11-04/4638602.html"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Anthropic Open-Sources a Way to Prove Which Model Answered You",
+            body: "Anthropic released FlashProve, an open-source research prototype that lets a provider prove an answer came from a specific set of model weights without disclosing those weights. The provider first publishes a short cryptographic commitment that pins down the weights, then, after generating a reply, produces a proof file showing that the checked output is consistent with that set of weights for the given input. A user can verify the commitment, input, output and proof on their own CPU, without the weights and without re-running the whole model. It is a research prototype rather than a shipping product, and the company framed it alongside work on model identity systems.",
+          },
+          zh: {
+            title: "Anthropic 开源 FlashProve：不公开权重，也能证明这句话出自哪个模型",
+            body: "Anthropic 开源了一个研究原型 FlashProve：提供方先为一组模型权重发布一个简短的密码学「承诺」，把权重固定住但不公开；生成回复后，再产出一份证明文件，说明被检查的输出与该组权重在给定输入下的计算结果一致。用户拿到承诺、输入、输出和证明文件后，可以在自己的 CPU 上校验，既不需要权重，也不需要重跑整个模型。公司把它定位为研究原型，而不是已上线的产品，并与「模型身份系统」的工作并列推进。"
+          },
+          why: "模型能力趋同、价格战开打之后，下一个能卖的东西是「可验证」——证明这句话确实出自你付钱的那个模型。对企业客户，这比多两分 benchmark 值钱；对监管，这是把「模型身份」从口头承诺变成可审计的对象。",
+          source: "TechDaily",
+          url: "https://news.techdou.com/"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "JD.com Orders 3 Million Robots and 100,000 Drones Over Five Years",
+            body: "At the robotics and embodied intelligence forum of the World Internet Conference in Wuzhen on November 4, Cao Peng, chairman of JD Group's technology committee, said JD Logistics plans to procure 3 million robots, 1 million unmanned vehicles and 100,000 drones over the next five years, for logistics, offline retail, health and industrial parks. He said physical AI has begun to scale and that competition is shifting to compute, data and scenarios. JD is also building an embodied-AI data collection centre, targeting more than 10 million hours of high-quality video of real human scenes and more than 1 million hours of robot-body operating data within two years.",
+          },
+          zh: {
+            title: "京东下单：五年 300 万台机器人、10 万架无人机",
+            body: "11 月 4 日，在乌镇世界互联网大会机器人与具身智能论坛上，京东集团技术委员会主席曹鹏表示，京东物流计划未来五年采购 300 万台机器人、100 万台无人车和 10 万架无人机，用于物流、线下零售、健康、产业园区等场景。他说物理 AI 已开始规模化落地，行业竞争焦点正转向算力、数据与场景。京东还在建具身智能数据采集中心，目标两年内累计采集超过 1000 万小时高质量人类真实场景视频、超过 100 万小时机器人本体运行数据。"
+          },
+          why: "这是需求侧递给供给侧的一张「确定性问题」：300 万台不是市场规模预测，是采购承诺，用订单的确定性去换供给侧的成熟。但它兑现的前提是机器人真能在产线跑满一个班次——订单能签，运维签不了。判断具身智能，看交付和运维，不看发布会。",
+          source: "每日经济新闻",
+          url: "https://www.mrjjxw.com/articles/2026-11-04/4638602.html"
+        }
+      ]
+    },
+
+    {
+      id: "thinking", name: "认知加餐", nameEn: "Thinking", color: "#1F5C4B",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Rates Fell, and the Longest-Duration Assets Fell Hardest",
+            body: "On November 4 the 10-year Treasury yield fell 7 basis points to 4.89%, its lowest close in two months, and the dollar weakened. In a textbook discounted-cash-flow world that is the best possible news for the longest-duration asset in the equity market — the one whose value sits furthest in the future. The AI hardware chain should have led the rally. It led the decline instead: the Philadelphia Semiconductor Index fell 3.13%, Micron 7.00%, Seagate 8.13%, Vertiv nearly 12%, CoreWeave 9%. On the other side, Microsoft closed at a record, Amazon rose 6.12%, and four mega-caps added about $1 trillion of market value in a single session. The political shock was identical for both groups: Democrats controlling both chambers, a flipped Texas governorship, and an assumption that approvals, power, water and AI regulation all get tighter from here. What differed was where each business sits relative to that shock. For Microsoft and Amazon the constraint raises the value of capacity already built and slows the capex that had been crushing free cash flow. For CoreWeave, Vertiv, Micron and the optics makers, the constraint pushes the next building — and therefore the order book — further into the future. A lower discount rate should have more than compensated for that. It did not, which is the whole point: when the rate falls and the asset still falls, the thing being repriced is not the rate. It is the date on the cash flow.",
+          },
+          zh: {
+            title: "利率降了，最长久期的资产反而跌得最狠",
+            body: "11 月 4 日，十年期美债收益率跌 7 个基点至 4.89%，两个月最低收盘，美元同时走弱。按教科书里的现金流折现，这对股票市场里久期最长的资产——价值落在最远未来的那一类——是最好的消息，AI 硬件链本该领涨。它领跌了：费城半导体指数跌 3.13%，美光跌 7.00%，希捷跌 8.13%，维谛技术跌近 12%，CoreWeave 跌 9%。另一边，微软收盘创历史新高，亚马逊涨 6.12%，四家巨头单日市值合计增加约 1 万亿美元。政治冲击对两组公司是同一个：民主党掌控两院、得州州长翻蓝、市场假设审批、电力、用水和 AI 监管都会更紧。不同的只是每门生意站在这个冲击的哪一侧。对微软和亚马逊，约束抬高了已经建成的产能的价值，同时压慢了那个一直在吞噬自由现金流的资本开支；对 CoreWeave、维谛、美光、光模块厂，约束把下一栋楼——也就是订单簿——推得更远。更低的折现率本该足以补偿这一点，但它没有。这就是关键：当利率下降、资产还在跌，被重新定价的就不是利率，而是现金流发生的年份。"
+          },
+          why: "折现率降了、长久期资产还跌，等于把「利率解释」直接排除，只剩「订单日期」这一个解释。以后看到某个板块被一条政策消息砸下来，先分清被砍的是折现率还是现金流年份——这两个答案对应完全不同的持有期限和加仓时机。",
+          source: "同花顺期货通",
+          url: "https://goodsfu.10jqka.com.cn/20261105/c681479016.shtml"
+        }
+      ]
+    }
+  ],
+
+  insight: {
+    title_en: "When the Discount Rate Falls and the Asset Still Falls",
+    title_zh: "折现率降了，它为什么还在跌",
+    body_en: "There is a cheap way to tell whether a sell-off is about interest rates or about time. On November 4 the 10-year yield fell 7 basis points, so anything whose value depends on distant cash flows should have gone up. The AI hardware complex went down: semiconductors 3.13%, Micron 7%, Vertiv nearly 12%, CoreWeave 9%. That single contradiction does most of the analytical work, because it eliminates the rate explanation and leaves only one candidate: the market moved the year in which those cash flows are now expected to arrive. The mechanism is worth naming, because it generalises well beyond chips. A constraint — approvals, power, water, regulation, a customer's funding cost — does not hit an industry evenly. It hits the companies whose revenue is already contracted and switched on in one direction, by making what exists scarcer; and the companies whose revenue depends on the next permit in the other, by pushing that permit further out. Same news, two signs, and the split is not about quality or intelligence or even growth rates. It is about distance to cash. In personal terms the same sorting happens constantly and is much harder to see: a skill that pays this quarter and a skill that pays in three years look identical on a learning plan, and a business that bills monthly and a business that signs a five-year contract look identical in a pitch deck. When conditions tighten, the second one in each pair loses value first, and the loss is invisible because nothing in the present tense changed.",
+    body_zh: "有一个很便宜的办法，能分辨一次下跌是在杀利率还是在杀时间。11 月 4 日，十年期美债收益率跌了 7 个基点——按这个逻辑，所有价值依赖远期现金流的资产都应该上涨。AI 硬件却跌了：半导体指数 3.13%、美光 7%、维谛技术近 12%、CoreWeave 9%。这个矛盾本身就把大半分析做完了：它排除了利率解释，只剩一个候选——市场把「这些钱哪一年到账」往后挪了。这个机制值得单独命名，因为它远不只在芯片上成立。一个约束——审批、电力、用水、监管、客户的融资成本——从来不是均匀地打在一个行业上。对收入已经签好合同、已经通电运行的公司，它通过「让存量变稀缺」起正向作用；对收入依赖下一张许可证的公司，它通过「把许可证推远」起反向作用。同一条消息，两个方向，而分界线不是质量、不是聪明程度、甚至不是增速，是离现金的距离。换到个人身上，同样的分层每天都在发生，只是更难看见：一项这个季度就能变现的技能，和一项三年后才变现的技能，在学习计划上长得一模一样；一门按月收费的生意，和一门签五年合同的生意，在商业计划书里也长得一模一样。条件一收紧，每一对里的后者先掉价，而且这个损失是看不见的——因为现在时里什么都没有变。",
+    question: "我手上最看重的那笔投入，靠的是已经在账上的现金流，还是某一天会批下来的那张许可？如果是后者，我等得起几个季度？"
+  },
+
+  watch: [
+    { when: "周四", text: "英国央行利率决议（20:00），看它在油价一夜跌 8% 之后怎么改通胀措辞。第九届进博会开幕（11/5-10）。美股这边最该看的是费城半导体指数能不能止跌——道指 3% 的涨幅和费半 3.13% 的跌幅，是同一天的两套叙事。" },
+    { when: "周五", text: "美国 10 月非农就业（北京时间 21:30）。9 月 JOLTS 意外升至 752.3 万后，CME 本周早些时候给 12 月加息的定价是 78.9%；油价一夜跌 8%、盈亏平衡通胀率跌到 8 月以来最低，这个数字会不会松动，是比新增就业人数更值得看的第二层。" },
+    { when: "11/9-11", text: "俄美乌三方 11/10-11 在阿布扎比会谈（俄方梅金斯基率团），同期「志愿联盟」11 国约 2800 人在波兰搞首次部署演习。谈的是停火线，练的是部署速度，两件事要一起看。" },
+    { when: "下周", text: "Anthropic 目标 11/16 当周上市，估值报道接近 1.5 万亿美元、算力采购与租赁承诺约 8954 亿美元。那几天是市场对「照付不议」这套结构最直接的一次投票。" },
+    { when: "本周", text: "两个验证点：一是霍尔木兹通行量能否从 1710 万桶/日回到 1890 万桶/日以上（油价 8% 的跌幅靠这个确认，不是靠通稿）；二是 A 股成交额能否连续站住 2 万亿、两融余额止跌（科创 50 单日 9.92% 靠这个确认，不是靠涨停家数）。" }
+  ]
+};
+
+</script>
+<script>
+(function(){
+  var B = window.BRIEFING;
+  var $ = function(s,c){return (c||document).querySelector(s)};
+  var app = $('#app');
+
+  if(!B){ app.innerHTML = '<p style="color:#888;padding:40px 0">未找到简报数据 data/briefing.js</p>'; return; }
+
+  /* ---------- 日期 ---------- */
+  var d = new Date(B.meta.date + 'T07:30:00');
+  var wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  $('#dateline').innerHTML =
+    '<b>'+d.getFullYear()+'.'+mm+'.'+dd+'</b>'+
+    '<span class="sep"></span><span>'+wd+'</span>'+
+    '<span class="sep"></span><span>第 '+B.meta.issue+' 期</span>'+
+    '<span class="sep"></span><span>'+(B.meta.readMinutes||6)+' 分钟读完</span>';
+
+  /* ---------- 渲染 ---------- */
+  var total = B.sections.reduce(function(n,s){return n+s.items.length},0);
+
+  var html = '';
+
+  /* hero */
+  html += '<section class="hero">'+
+    '<div class="kicker">Today in one line</div>'+
+    '<h1>'+esc(B.meta.tldr_en)+'</h1>'+
+    '<p class="zh">'+esc(B.meta.tldr_zh)+'</p>'+
+    '<div class="hero-meta"><span>'+total+' 条精选</span><span>'+B.sections.length+' 个板块</span><span>每日 07:30 更新</span></div>'+
+  '</section>';
+
+  /* ticker */
+  if(B.pulse && B.pulse.length){
+    html += '<div class="ticker-wrap"><div class="ticker">';
+    B.pulse.forEach(function(p){
+      var cls = p.dir === 'up' ? 'up' : p.dir === 'down' ? 'down' : 'flat';
+      html += '<div class="tick"><div class="n">'+esc(p.label)+'</div>'+
+              '<div class="v">'+esc(p.value)+'</div>'+
+              '<div class="c '+cls+'">'+esc(p.change)+'</div></div>';
+    });
+    html += '</div></div>';
+  }
+
+  /* tabs */
+  html += '<nav class="tabs"><button class="tab on" data-f="all">全部</button>';
+  B.sections.forEach(function(s){
+    html += '<button class="tab" data-f="'+s.id+'">'+esc(s.name)+'</button>';
+  });
+  html += '</nav>';
+
+  /* sections */
+  B.sections.forEach(function(sec){
+    html += '<section class="group '+sec.id+'" data-sec="'+sec.id+'">'+
+      '<div class="group-head">'+
+        '<span class="bar" style="background:'+sec.color+'"></span>'+
+        '<h2>'+esc(sec.name)+'</h2>'+
+        '<span class="en">'+esc(sec.nameEn)+'</span>'+
+        '<span class="cnt">'+sec.items.length+'</span>'+
+      '</div>';
+
+    sec.items.forEach(function(it, i){
+      var id = sec.id + '-' + i;
+      var dots = '';
+      for(var k=1;k<=3;k++){ dots += '<i class="'+(k<=(it.importance||2)?'f':'')+'"></i>'; }
+      html += '<article class="card" data-sec="'+sec.id+'" data-id="'+id+'">'+
+        '<div class="card-top">'+
+          '<span class="pill" style="--sec:'+sec.color+'">'+esc(sec.name)+'</span>'+
+          '<span class="imp" title="重要性">'+dots+'</span>'+
+          '<button class="save" data-id="'+id+'" title="收藏">☆</button>'+
+        '</div>'+
+        '<h3 class="t-en">'+esc(it.en.title)+'</h3>'+
+        '<p class="b-en">'+esc(it.en.body)+'</p>'+
+        '<div class="divider">中文</div>'+
+        '<h4 class="t-zh">'+esc(it.zh.title)+'</h4>'+
+        '<p class="b-zh">'+esc(it.zh.body)+'</p>'+
+        '<div class="why"><b>Why it matters · 为什么重要</b><p>'+esc(it.why)+'</p></div>'+
+        '<div class="card-foot"><span>'+esc(it.source)+'</span>'+
+          (it.url?'<a href="'+it.url+'" target="_blank" rel="noopener">原文 →</a>':'')+
+          '<button class="ask-inline" data-ask="'+esc(it.zh.title)+'">问这条</button>'+
+        '</div>'+
+      '</article>';
+    });
+    html += '</section>';
+  });
+
+  /* insight */
+  if(B.insight){
+    var I = B.insight;
+    html += '<section class="insight">'+
+      '<div class="ins-kicker">认知加餐 · Mental Model</div>'+
+      '<h2>'+esc(I.title_en)+'</h2>'+
+      '<div class="h2-zh">'+esc(I.title_zh)+'</div>'+
+      '<p class="en-body">'+esc(I.body_en)+'</p>'+
+      '<p class="zh-body">'+esc(I.body_zh)+'</p>'+
+      '<div class="q">'+esc(I.question)+'</div>'+
+    '</section>';
+  }
+
+  /* watch */
+  if(B.watch && B.watch.length){
+    html += '<section class="watch"><h3>明日关注 · On Deck</h3>';
+    B.watch.forEach(function(w){
+      html += '<div class="w-item"><span class="when">'+esc(w.when)+'</span><span>'+esc(w.text)+'</span></div>';
+    });
+    html += '</section>';
+  }
+
+  html += '<footer>'+
+    '<div class="f-brand"><span class="dot"></span>Buddy Morning Brief</div>'+
+    '<div>'+esc(B.meta.footer||'每天 07:30 更新。内容由 Buddy 从公开信源整理，中英文对照仅供阅读与语言学习，不构成任何投资建议。')+'</div>'+
+    '<div style="margin-top:7px;opacity:.72">编译于 '+esc(B.meta.generatedAt||'')+'</div>'+
+  '</footer>';
+
+  app.innerHTML = html;
+
+  /* ---------- 筛选 ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){x.classList.remove('on')});
+      t.classList.add('on');
+      var f = t.dataset.f;
+      document.querySelectorAll('.group').forEach(function(g){
+        g.style.display = (f==='all' || g.dataset.sec===f) ? '' : 'none';
+      });
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  /* ---------- 进场动画 ---------- */
+  var cards = document.querySelectorAll('.card');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.remove('pending');
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, {rootMargin:'0px 0px -40px 0px', threshold:.05});
+    cards.forEach(function(c,i){
+      c.classList.add('pending');
+      c.style.transitionDelay = (i%3)*55+'ms';
+      io.observe(c);
+    });
+  } else {
+    cards.forEach(function(c){ c.classList.add('in'); });
+  }
+
+  /* ---------- 收藏 ---------- */
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('buddy.saved')||'{}'); } catch(e){}
+  document.querySelectorAll('.save').forEach(function(b){
+    if(saved[b.dataset.id]){ b.classList.add('on'); b.textContent='★'; }
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      var id = b.dataset.id;
+      if(saved[id]){ delete saved[id]; b.classList.remove('on'); b.textContent='☆'; }
+      else { saved[id]=1; b.classList.add('on'); b.textContent='★'; }
+      try{ localStorage.setItem('buddy.saved', JSON.stringify(saved)); }catch(err){}
+    });
+  });
+
+  /* ---------- 语言 ---------- */
+  var langs = ['both','zh','en'];
+  var lang = localStorage.getItem('buddy.lang') || 'both';
+  function applyLang(){
+    document.documentElement.dataset.lang = lang;
+    var lb = $('#langBtn');
+    lb.textContent = lang === 'both' ? '中英' : (lang === 'zh' ? '中' : 'EN');
+    lb.classList.toggle('on', lang !== 'both');
+    lb.title = '当前：' + (lang === 'both' ? '中英对照' : lang === 'zh' ? '仅中文' : '仅英文');
+  }
+  applyLang();
+  $('#langBtn').addEventListener('click', function(){
+    lang = langs[(langs.indexOf(lang)+1) % langs.length];
+    localStorage.setItem('buddy.lang', lang);
+    applyLang();
+  });
+
+  /* ---------- 主题 ---------- */
+  var theme = localStorage.getItem('buddy.theme') ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  function applyTheme(){
+    document.documentElement.dataset.theme = theme;
+    $('meta[name=theme-color]').setAttribute('content', theme==='dark' ? '#100F0D' : '#F4F1EA');
+  }
+  applyTheme();
+  $('#themeBtn').addEventListener('click', function(){
+    theme = theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('buddy.theme', theme);
+    applyTheme();
+  });
+
+  /* ---------- 朗读 ---------- */
+  var speaking = false;
+  $('#speakBtn').addEventListener('click', function(){
+    if(!('speechSynthesis' in window)) return;
+    if(speaking){ speechSynthesis.cancel(); speaking=false; $('#speakBtn').classList.remove('on'); return; }
+    var text = B.meta.tldr_zh + '。' +
+      B.sections.map(function(s){ return s.name + '：' + s.items.map(function(i){return i.zh.title}).join('；'); }).join('。');
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 1.02; u.pitch = 1;
+    u.onend = function(){ speaking=false; $('#speakBtn').classList.remove('on'); };
+    speechSynthesis.speak(u);
+    speaking = true; $('#speakBtn').classList.add('on');
+  });
+
+  /* ---------- 进度条 ---------- */
+  var bar = $('#progress');
+  function onScroll(){
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ---------- utils ---------- */
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(m){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+  }
+})();
+</script>
+</body>
+</html>
