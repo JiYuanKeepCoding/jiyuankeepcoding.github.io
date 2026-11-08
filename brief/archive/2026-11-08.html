@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-lang="both">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#F6F4EF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Buddy">
+<title>Buddy · 晨间情报</title>
+<style>
+:root{
+  --paper:#F4F1EA; --card:#FFFFFF; --card-2:#FBFAF6;
+  --ink:#17161A; --ink-2:#4B4852; --ink-3:#8A8590;
+  --line:#E5E0D5; --line-2:#EFEBE2;
+  --accent:#1F5C4B; --amber:#B45309;
+  --up:#C0392B; --down:#1E7A54;
+  --shadow:0 1px 2px rgba(30,25,15,.05), 0 8px 24px -12px rgba(30,25,15,.14);
+  --shadow-lg:0 2px 4px rgba(30,25,15,.06), 0 18px 40px -18px rgba(30,25,15,.22);
+  --serif:ui-serif,"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+[data-theme="dark"]{
+  --paper:#100F0D; --card:#1A1917; --card-2:#201E1B;
+  --ink:#F3F0E8; --ink-2:#B7B1A6; --ink-3:#7C776E;
+  --line:#2B2823; --line-2:#232019;
+  --accent:#7CC4A4; --amber:#E0A063;
+  --up:#E4705F; --down:#5FBE94;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  --shadow-lg:0 2px 4px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px; line-height:1.6;
+  transition:background .35s ease,color .35s ease;
+  overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(900px 500px at 50% -180px, rgba(31,92,75,.055), transparent 70%),
+    radial-gradient(700px 400px at 100% 100%, rgba(180,83,9,.045), transparent 70%);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(900px 500px at 50% -180px, rgba(124,196,164,.07), transparent 70%),
+    radial-gradient(700px 400px at 100% 100%, rgba(224,160,99,.05), transparent 70%);
+}
+
+/* ---------- 进度条 ---------- */
+#progress{
+  position:fixed; top:0; left:0; height:2px; width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--amber));
+  z-index:100; transition:width .12s linear;
+}
+
+.wrap{max-width:540px; margin:0 auto; padding:0 20px 64px; position:relative; z-index:1}
+
+/* ---------- 顶栏 ---------- */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px 0 14px; gap:12px;
+}
+.brand{display:flex; align-items:center; gap:9px; font-weight:700; letter-spacing:-.01em; font-size:17px}
+.dot{
+  width:9px;height:9px;border-radius:50%;
+  background:var(--accent); position:relative; flex:none;
+}
+.dot::after{
+  content:""; position:absolute; inset:-4px; border-radius:50%;
+  border:1.5px solid var(--accent); opacity:0;
+  animation:pulse 2.8s ease-out infinite;
+}
+@keyframes pulse{0%{opacity:.55;transform:scale(.7)}70%{opacity:0;transform:scale(1.5)}100%{opacity:0}}
+.brand small{
+  font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); padding-left:9px; margin-left:3px; border-left:1px solid var(--line);
+}
+.head-tools{display:flex; align-items:center; gap:6px}
+.icon-btn{
+  width:34px;height:34px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card); color:var(--ink-2); font-size:15px;
+  display:grid;place-items:center;cursor:pointer;padding:0;
+  transition:all .18s ease;
+}
+.icon-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+[data-theme="dark"] .icon-btn.on{color:#0F211B}
+#langBtn{font-size:11px; font-weight:700; letter-spacing:.02em; font-family:inherit}
+
+/* ---------- 日期带 ---------- */
+.dateline{
+  display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+  padding-bottom:18px; border-bottom:1px solid var(--line);
+  font-size:12.5px; color:var(--ink-3); letter-spacing:.02em;
+}
+.dateline b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+.dateline .sep{width:3px;height:3px;border-radius:50%;background:var(--ink-3);opacity:.5;display:inline-block;transform:translateY(-3px)}
+
+/* ---------- Hero ---------- */
+.hero{padding:30px 0 8px}
+.kicker{
+  font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent); display:flex; align-items:center; gap:8px; margin-bottom:15px;
+}
+.kicker::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.hero h1{
+  font-family:var(--serif); font-weight:600;
+  font-size:26px; line-height:1.34; letter-spacing:-.02em;
+  margin:0 0 14px; text-wrap:balance;
+}
+.hero .zh{
+  font-size:15.5px; line-height:1.85; color:var(--ink-2);
+  margin:0; letter-spacing:.01em;
+}
+.hero-meta{
+  display:flex; gap:14px; flex-wrap:wrap; margin-top:18px;
+  font-size:11.5px; color:var(--ink-3); letter-spacing:.03em;
+}
+.hero-meta i{font-style:normal; font-variant-numeric:tabular-nums}
+
+/* ---------- 市场条 ---------- */
+.ticker-wrap{margin:26px -20px 0; padding:0}
+.ticker{
+  display:flex; gap:9px; overflow-x:auto; padding:4px 20px 12px;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
+}
+.ticker::-webkit-scrollbar{display:none}
+.tick{
+  flex:none; min-width:96px; scroll-snap-align:start;
+  background:var(--card); border:1px solid var(--line);
+  border-radius:14px; padding:10px 12px 9px;
+  box-shadow:var(--shadow);
+}
+.tick .n{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:600; white-space:nowrap}
+.tick .v{font-size:16px; font-weight:650; font-variant-numeric:tabular-nums; letter-spacing:-.02em; margin-top:2px}
+.tick .c{font-size:11.5px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:1px}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--ink-3)}
+
+/* ---------- 筛选 tab ---------- */
+.tabs{
+  position:sticky; top:0; z-index:30;
+  display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;
+  margin:14px -20px 0; padding:12px 20px;
+  background:linear-gradient(to bottom, var(--paper) 62%, transparent);
+  backdrop-filter:blur(8px);
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:none; border:1px solid var(--line); background:var(--card);
+  color:var(--ink-2); font-size:12.5px; font-weight:600; font-family:inherit;
+  padding:7px 14px; border-radius:999px; cursor:pointer;
+  transition:all .2s ease; white-space:nowrap;
+}
+.tab:active{transform:scale(.96)}
+.tab.on{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+[data-theme="dark"] .tab.on{background:var(--ink); color:#100F0D}
+
+/* ---------- 板块标题 ---------- */
+.group{margin-top:30px; animation:fadeUp .5s ease both}
+.group-head{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.group-head .bar{width:3px;height:15px;border-radius:2px;flex:none}
+.group-head h2{margin:0; font-size:13px; font-weight:700; letter-spacing:.06em}
+.group-head .en{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.group-head .cnt{margin-left:auto; font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+
+/* ---------- 卡片 ---------- */
+.card{
+  position:relative; background:var(--card); border:1px solid var(--line);
+  border-radius:19px; padding:19px 18px 16px; margin-bottom:13px;
+  box-shadow:var(--shadow);
+  transition:box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+.card.pending{opacity:0; transform:translateY(14px)}
+.card.in{opacity:1; transform:none; transition:opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1), box-shadow .25s ease, border-color .25s ease}
+.card:active{transform:scale(.995)}
+.card.flash{border-color:var(--amber)}
+.card-top{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+.pill{
+  --sec:#888888;
+  font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  padding:3.5px 9px; border-radius:7px; white-space:nowrap;
+  background:rgba(120,120,120,.12); color:var(--sec);
+  background:color-mix(in srgb, var(--sec) 12%, transparent);
+}
+[data-theme="dark"] .pill{
+  background:color-mix(in srgb, var(--sec) 20%, transparent);
+  color:color-mix(in srgb, var(--sec) 38%, #ffffff);
+}
+.imp{display:flex; gap:2.5px; margin-left:auto; align-items:center}
+.imp i{width:4px;height:4px;border-radius:50%;background:var(--line);display:block}
+.imp i.f{background:var(--amber)}
+.save{
+  background:none;border:none;padding:2px 0 2px 8px;cursor:pointer;
+  color:var(--ink-3); font-size:15px; line-height:1; font-family:inherit;
+  transition:transform .2s ease, color .2s ease;
+}
+.save:active{transform:scale(1.3)}
+.save.on{color:var(--amber)}
+
+.t-en{
+  font-family:var(--serif); font-weight:600; font-size:20px; line-height:1.32;
+  letter-spacing:-.015em; margin:0 0 9px;
+}
+.b-en{
+  font-size:14.5px; line-height:1.66; color:var(--ink-2); margin:0;
+  letter-spacing:.004em;
+}
+.divider{
+  display:flex; align-items:center; gap:10px; margin:15px 0 13px;
+  font-size:9.5px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:700;
+}
+.divider::before,.divider::after{content:""; height:1px; background:var(--line-2); flex:1}
+.divider::before{flex:0 0 22px}
+.t-zh{font-size:16.5px; font-weight:650; line-height:1.55; margin:0 0 8px; letter-spacing:-.005em}
+.b-zh{font-size:14.5px; line-height:1.88; color:var(--ink-2); margin:0; letter-spacing:.012em}
+
+.why{
+  margin-top:14px; padding:12px 13px 12px 14px;
+  background:var(--card-2); border-radius:12px;
+  border-left:2.5px solid var(--amber);
+}
+.why b{
+  display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--amber); margin-bottom:5px; font-weight:700;
+}
+.why p{margin:0; font-size:13.5px; line-height:1.8; color:var(--ink-2); letter-spacing:.01em}
+
+.card-foot{
+  display:flex; align-items:center; gap:8px; margin-top:14px;
+  font-size:10.5px; color:var(--ink-3); letter-spacing:.03em;
+}
+.card-foot a{margin-left:auto; color:var(--ink-3); text-decoration:none; border-bottom:1px dotted var(--line); padding-bottom:1px}
+.card-foot a:hover{color:var(--accent); border-color:var(--accent)}
+
+/* ---------- 语言模式 ---------- */
+[data-lang="zh"] .t-en,[data-lang="zh"] .b-en,[data-lang="zh"] .divider{display:none}
+[data-lang="zh"] .t-zh{font-size:18px}
+[data-lang="en"] .t-zh,[data-lang="en"] .b-zh,[data-lang="en"] .divider,[data-lang="en"] .why{display:none}
+[data-lang="en"] .hero .zh{display:none}
+[data-lang="en"] .t-en{font-size:21px}
+[data-lang="zh"] .hero h1{display:none}
+
+/* ---------- 认知卡 ---------- */
+.insight{
+  margin-top:38px; border-radius:22px; overflow:hidden;
+  background:linear-gradient(165deg,#17332B 0%, #10241E 60%, #0D1D18 100%);
+  color:#EFEDE4; padding:26px 22px 24px;
+  box-shadow:var(--shadow-lg); position:relative;
+}
+[data-theme="dark"] .insight{
+  background:linear-gradient(165deg,#1C3B31 0%, #14291F 60%, #0F2018 100%);
+  border:1px solid rgba(124,196,164,.16);
+}
+.insight::after{
+  content:""; position:absolute; top:-60px; right:-50px; width:200px; height:200px;
+  border-radius:50%; background:radial-gradient(circle,rgba(224,160,99,.22),transparent 68%);
+}
+.ins-kicker{
+  font-size:9.5px; letter-spacing:.24em; text-transform:uppercase;
+  color:#D9A66B; font-weight:700; margin-bottom:14px;
+  display:flex; align-items:center; gap:8px; position:relative; z-index:1;
+}
+.insight h2{
+  font-family:var(--serif); font-size:22px; font-weight:600; line-height:1.3;
+  margin:0 0 6px; letter-spacing:-.015em; position:relative; z-index:1;
+}
+.insight .h2-zh{
+  font-family:var(--sans); font-size:15px; font-weight:600; color:#C9C5B8;
+  margin:0 0 16px; letter-spacing:.02em; position:relative; z-index:1;
+}
+.insight p{
+  font-size:13.5px; line-height:1.78; color:#BEB9AC; margin:0 0 12px;
+  position:relative; z-index:1;
+}
+.insight .zh-body{font-size:14px; line-height:1.9; color:#DCD8CB; letter-spacing:.012em}
+.insight .q{
+  margin-top:18px; padding-top:16px; border-top:1px solid rgba(255,255,255,.1);
+  font-size:14px; line-height:1.85; color:#F2EEE0; position:relative; z-index:1;
+}
+.insight .q::before{
+  content:"?"; display:inline-grid; place-items:center;
+  width:17px;height:17px; border-radius:50%;
+  background:rgba(224,160,99,.2); color:#E8B87F;
+  font-size:11px; font-weight:700; margin-right:7px; vertical-align:1px;
+}
+[data-lang="en"] .insight .zh-body,[data-lang="en"] .insight .h2-zh,[data-lang="en"] .insight .q{display:none}
+[data-lang="zh"] .insight h2,[data-lang="zh"] .insight p.en-body{display:none}
+[data-lang="zh"] .insight .h2-zh{font-size:19px;color:#fff;font-weight:700;margin-bottom:14px}
+
+/* ---------- 明日关注 ---------- */
+.watch{margin-top:34px}
+.watch h3{
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:700; margin:0 0 13px;
+  display:flex; align-items:center; gap:9px;
+}
+.watch h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.w-item{
+  display:flex; gap:12px; padding:11px 0; border-bottom:1px solid var(--line-2);
+  font-size:13.5px; line-height:1.66; color:var(--ink-2);
+}
+.w-item:last-child{border-bottom:none}
+.w-item .when{
+  flex:none; width:42px; font-size:10.5px; font-weight:700; color:var(--accent);
+  letter-spacing:.04em; padding-top:2.5px; font-variant-numeric:tabular-nums;
+}
+
+footer{
+  margin-top:40px; padding-top:22px; border-top:1px solid var(--line);
+  font-size:11px; line-height:1.85; color:var(--ink-3); letter-spacing:.02em;
+}
+footer .f-brand{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-weight:600;font-size:12px;margin-bottom:9px}
+footer .f-brand .dot{width:6px;height:6px}
+footer .f-brand .dot::after{display:none}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+@media (min-width:640px){
+  .hero h1{font-size:30px}
+  .wrap{padding-bottom:90px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .card,.card.pending{opacity:1!important;transform:none!important}
+}
+
+/* ---------- Ask AI：浮标 ---------- */
+.ask-fab{
+  position:fixed; right:18px; bottom:20px; z-index:80;
+  height:48px; padding:0 17px 0 13px; border-radius:999px;
+  border:none; background:var(--accent); color:#fff;
+  display:flex; align-items:center; gap:7px;
+  font-family:inherit; font-size:13.5px; font-weight:700; letter-spacing:.02em;
+  box-shadow:0 8px 22px -8px rgba(31,92,75,.6), 0 2px 5px rgba(30,25,15,.18);
+  cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, opacity .2s ease;
+}
+[data-theme="dark"] .ask-fab{color:#0F211B}
+.ask-fab:active{transform:scale(.94)}
+.ask-fab svg{width:15px;height:15px;display:block}
+.ask-fab.hide{opacity:0;pointer-events:none;transform:scale(.9)}
+body.has-ask .wrap{padding-bottom:120px}
+
+/* ---------- Ask AI：面板 ---------- */
+.ask-scrim{
+  position:fixed; inset:0; z-index:90;
+  background:rgba(18,16,12,.44); backdrop-filter:blur(2px);
+  opacity:0; pointer-events:none; transition:opacity .3s ease;
+}
+.ask-scrim.on{opacity:1;pointer-events:auto}
+
+.ask-sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:95;
+  height:78vh; max-height:78vh;
+  display:flex; flex-direction:column;
+  background:var(--card); border:1px solid var(--line); border-bottom:none;
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -14px 44px -14px rgba(30,25,15,.34);
+  transform:translateY(102%);
+  transition:transform .34s cubic-bezier(.22,.9,.28,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.ask-sheet.on{transform:none}
+@media (min-width:640px){
+  .ask-sheet{left:calc(50% - 270px); right:calc(50% - 270px)}
+}
+
+.ask-head{
+  display:flex; align-items:center; gap:9px;
+  padding:16px 18px 12px; border-bottom:1px solid var(--line-2); flex:none;
+}
+.ask-head .ttl{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.ask-head .ttl .dot{width:7px;height:7px}
+.ask-head .ttl .dot::after{display:none}
+.ask-head .sub{font-size:10.5px;color:var(--ink-3);letter-spacing:.06em;font-weight:600;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.ask-quota{
+  margin-left:auto; flex:none; display:inline-flex; align-items:center; gap:5px;
+  height:24px; padding:0 9px; border-radius:20px; cursor:pointer;
+  border:1px solid var(--line); background:transparent; color:var(--ink-3);
+  font-family:inherit; font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  white-space:nowrap; transition:background .2s,color .2s,border-color .2s;
+}
+.ask-quota:active{transform:scale(.96)}
+.ask-quota.warn{color:#B4552F;border-color:rgba(180,85,47,.45)}
+.ask-quota.out{background:#B4552F;border-color:#B4552F;color:#fff}
+.ask-head .ask-x{margin-left:8px}
+.ask-x{
+  margin-left:auto; width:30px;height:30px;border-radius:9px;
+  border:1px solid var(--line); background:transparent; color:var(--ink-3);
+  font-family:inherit; font-size:13px; cursor:pointer; display:grid;place-items:center;
+}
+.ask-x:active{transform:scale(.92)}
+
+.ask-log{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 18px 6px}
+.ask-log::-webkit-scrollbar{width:0}
+.msg{display:flex; margin-bottom:13px; animation:fadeUp .3s ease both}
+.msg.u{justify-content:flex-end}
+.bub{
+  max-width:87%; border-radius:16px; padding:10px 14px;
+  font-size:14px; line-height:1.8; letter-spacing:.01em; word-break:break-word;
+}
+.msg.u .bub{background:var(--accent); color:#fff; border-bottom-right-radius:5px; font-size:14px}
+[data-theme="dark"] .msg.u .bub{color:#0F211B}
+.msg.b .bub{
+  background:var(--card-2); border:1px solid var(--line); color:var(--ink-2);
+  border-bottom-left-radius:5px;
+}
+.bub strong{color:var(--ink); font-weight:700}
+[data-theme="dark"] .msg.u .bub strong{color:#0F211B}
+.bub ul{margin:6px 0; padding-left:16px}
+.bub li{margin:3px 0}
+.bub .src{display:block;margin-top:8px;font-size:11px;color:var(--ink-3);letter-spacing:.03em}
+.msg.err .bub{background:rgba(192,57,43,.08); border-color:rgba(192,57,43,.3); color:var(--up)}
+
+.think{display:inline-flex; gap:4px; align-items:center; padding:3px 0}
+.think i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);opacity:.4;animation:blink 1.2s infinite}
+.think i:nth-child(2){animation-delay:.18s}
+.think i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:.9;transform:translateY(-2px)}}
+
+.ask-chips{
+  display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;
+  padding:8px 18px 10px; flex:none;
+}
+.ask-chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:none; border:1px solid var(--line); background:var(--card-2);
+  color:var(--ink-2); font-family:inherit; font-size:12px; font-weight:600;
+  padding:7px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
+  transition:all .18s ease;
+}
+.chip:active{transform:scale(.96); border-color:var(--accent); color:var(--accent)}
+
+.ask-form{
+  display:flex; align-items:flex-end; gap:8px; flex:none;
+  padding:10px 18px 12px; border-top:1px solid var(--line-2);
+}
+.ask-mic{
+  flex:none; width:40px; height:40px; border-radius:13px;
+  border:1px solid var(--line); background:var(--card-2); color:var(--ink-2);
+  display:grid; place-items:center; cursor:pointer; padding:0;
+  transition:all .2s ease; touch-action:none;
+}
+.ask-mic svg{width:16px;height:16px}
+.ask-mic.on{background:var(--up); border-color:var(--up); color:#fff; transform:scale(1.06)}
+.ask-mic.on::after{content:"";position:absolute;width:40px;height:40px;border-radius:13px;border:2px solid var(--up);animation:micring 1.3s ease-out infinite}
+@keyframes micring{0%{opacity:.6;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}
+.ask-mic.na{opacity:.5}
+#askInput{
+  flex:1; min-width:0; min-height:40px; max-height:120px; resize:none;
+  border:1px solid var(--line); border-radius:13px; background:var(--card-2);
+  color:var(--ink); font-family:inherit; font-size:14.5px; line-height:1.5;
+  padding:10px 12px; outline:none; transition:border-color .18s ease;
+}
+#askInput:focus{border-color:var(--accent)}
+#askInput::placeholder{color:var(--ink-3)}
+.ask-send{
+  flex:none; width:40px;height:40px;border-radius:13px;border:none;
+  background:var(--accent); color:#fff; font-size:16px; font-weight:700;
+  cursor:pointer; display:grid; place-items:center; padding:0;
+  transition:all .18s ease;
+}
+[data-theme="dark"] .ask-send{color:#0F211B}
+.ask-send:disabled{opacity:.35}
+.ask-send:active{transform:scale(.93)}
+.ask-hint{
+  flex:none; padding:0 18px 8px; font-size:11px; color:var(--ink-3);
+  letter-spacing:.03em; min-height:15px;
+}
+.ask-hint.live{color:var(--up); font-weight:600}
+
+/* 卡片上的「问这条」 */
+.ask-inline{
+  margin-left:10px; border:1px solid var(--line); background:var(--card-2);
+  color:var(--ink-3); font-family:inherit; font-size:10.5px; font-weight:600;
+  padding:3px 9px; border-radius:7px; cursor:pointer; letter-spacing:.02em;
+  transition:all .18s ease;
+}
+.ask-inline:active{transform:scale(.94); border-color:var(--accent); color:var(--accent)}
+</style>
+<meta name="robots" content="noindex,nofollow">
+<!-- bb-mw74fisk -->
+<style>
+/* 线上静态版：无 server，隐藏问 AI 入口 */
+.ask-inline{display:none!important}
+/* 往期导航卡片 */
+.brief-nav{margin:30px 0 0;font-family:var(--sans)}
+.brief-nav a{display:flex;justify-content:space-between;align-items:center;gap:16px;
+padding:15px 18px;border:1px solid var(--line);border-radius:14px;
+background:var(--card);color:var(--ink);text-decoration:none;font-size:13.5px;
+letter-spacing:.01em;transition:border-color .18s ease}
+.brief-nav a+a{margin-top:10px}
+.brief-nav a:hover{border-color:var(--ink-3)}
+.brief-nav a:active{transform:scale(.99)}
+.brief-nav .sub{color:var(--ink-3);font-size:12px}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span>Buddy<small>Morning Brief</small></div>
+    <div class="head-tools">
+      <button class="icon-btn" id="langBtn" title="切换语言">EN</button>
+      <button class="icon-btn" id="speakBtn" title="朗读今日摘要">♪</button>
+      <button class="icon-btn" id="themeBtn" title="切换主题">◐</button><a class="icon-btn" href="../" title="回今天的简报" style="text-decoration:none">今</a>
+    </div>
+  </header>
+
+  <div class="dateline" id="dateline"></div>
+
+  <div id="app"></div>
+
+  <nav class="brief-nav"><a href="../"><span>回今天的简报</span><span class="sub">最新一期</span></a><a href="./"><span>往期简报</span><span class="sub">最近 7 天</span></a></nav>
+</div>
+
+
+
+<script>
+/* Buddy Morning Brief — 数据文件
+ * 每天由 Buddy 更新此文件即可，index.html 无需改动。
+ * 字段说明见 README.md
+ */
+window.BRIEFING = {
+  meta: {
+    date: "2026-11-08",
+    issue: "015",
+    readMinutes: 10,
+    generatedAt: "2026-11-08 08:51 GMT+8",
+    tldr_en: "Nothing is trading this weekend, which is exactly why the two escalations matter: US forces disabled a cargo ship in the Gulf of Oman and stood up Task Force Iron Gate to cover Iran's land borders and the Caspian, while Iran's Revolutionary Guard lifted its self-imposed 1,200-mile missile range cap and said two tankers hit mines in Hormuz — and in the same 48 hours Vice President Vance personally joined the indirect talks and Qatar's prime minister said there is no comprehensive deal. The first price for all of it prints at Monday's Asian open, three hours before 178 Section 301 exclusions expire at 23:59 Eastern.",
+    tldr_zh: "这个周末没有价格，所以两次升级才更要紧：美军在阿曼湾打瘫一艘货轮，并成立「铁门」特遣队去管伊朗的陆路边境与里海；伊朗革命卫队则解除自我设定的 1200 英里导弹射程上限，并称两艘油轮在霍尔木兹触雷。同样这 48 小时里，副总统万斯亲自介入间接磋商，卡塔尔首相却说双方没谈成全面协议。这一切的第一次定价出现在周一亚洲开盘，而十几个小时之后，178 项 301 关税豁免将在美东时间 23:59 到期。",
+    footer: "每天 07:30 更新。内容由 Buddy 从公开信源整理，中英文对照仅供阅读与语言学习，不构成任何投资建议。"
+  },
+
+  pulse: [
+    { label: "Brent",   value: "98.32",   change: "+0.03%", dir: "up" },
+    { label: "WTI",     value: "90.83",   change: "+0.34%", dir: "up" },
+    { label: "S&P 500", value: "7,377",   change: "+0.31%", dir: "up" },
+    { label: "Dow",     value: "51,286",  change: "-0.46%", dir: "down" },
+    { label: "Nasdaq",  value: "24,579",  change: "+1.09%", dir: "up" },
+    { label: "US 10Y",  value: "4.859%",  change: "+2.6bp", dir: "up" },
+    { label: "Gold",    value: "4,071",   change: "-0.44%", dir: "down" },
+    { label: "BTC",     value: "75,710",  change: "-0.03%", dir: "flat" }
+  ],
+
+  sections: [
+    {
+      id: "markets", name: "财经市场", nameEn: "Markets", color: "#B45309",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Berkshire's Cash Reaches a Record $377.4 Billion as the AI Trade Unwinds",
+            body: "Berkshire Hathaway reported third-quarter results on November 7. Operating earnings, the measure management treats as the real performance of the businesses, were $12.705 billion, down 5.8% from $13.485 billion a year earlier. Insurance underwriting fell 42.9% to $1.352 billion and insurance investment income fell 14.1% to $2.734 billion on lower short-term rates. At GEICO the loss ratio rose 5.1 points to 76.6% and the expense ratio 2.0 points to 14.8%, lifting the combined ratio to 91.4% from 84.3% — and that deterioration came in a year with no major catastrophe, after California wildfires cost about $850 million after tax in the same period of 2025. BNSF earned $1.729 billion, up 19.3% on 3.9% higher volume and 10.5% higher revenue per unit, with fuel expense up 60.6%. Net income was $22.112 billion, down 28%, as investment gains fell to $9.407 billion from $17.311 billion. Cash and short-term Treasuries reached $377.4 billion, a record, and the company bought back $9.647 billion of stock in the quarter, the most this year, taking the nine-month total to $14.4 billion. Sixty-five percent of the equity portfolio's fair value sits in Alphabet, American Express, Apple, Bank of America and Coca-Cola. Berkshire closed the week up 5% against a 2.68% decline in the S&P 500, and its Class A shares touched a record $878,327.71 on November 5.",
+          },
+          zh: {
+            title: "AI 交易退潮的这一周，伯克希尔的现金堆到 3774 亿美元",
+            body: "伯克希尔·哈撒韦 11 月 7 日公布三季报。管理层视为真实经营口径的营业利润为 127.05 亿美元，去年同期 134.85 亿，同比降 5.8%。保险承保利润 13.52 亿美元、同比降 42.9%；保险投资收益 27.34 亿、降 14.1%，原因是短端利率下行。GEICO 赔付率升 5.1 个百分点至 76.6%，费用率升 2.0 个百分点至 14.8%，综合成本率从 84.3% 升到 91.4%——而且这是在今年前三季度没有巨灾的背景下发生的（去年同期仅加州山火就有约 8.5 亿美元税后损失）。BNSF 铁路赚 17.29 亿美元、增 19.3%，运量增 3.9%、单箱收入增 10.5%，燃料支出增 60.6%。净利润 221.12 亿美元、降 28%，投资收益从 173.11 亿降到 94.07 亿。现金及短期美债 3774 亿美元，创历史新高；单季回购 96.47 亿美元、为年内最高，前三季累计 144 亿。股权投资公允价值的 65% 集中在 Alphabet、美国运通、苹果、美国银行和可口可乐。本周伯克希尔股价涨 5%，同期标普 500 跌 2.68%；11 月 5 日 A 类股盘中最高触及 878327.71 美元，创历史新高。"
+          },
+          why: "AI 交易退潮的这一周，涨得最好的资产恰恰是那个几乎不依赖「未来现金流折现」的。它一边利润变薄，一边把 96 亿美元买回自己、把现金堆到 3774 亿——管理层的动作等于在说，它找不到比持有自己更好的资产。这个判断比任何一份卖方报告都值得记一句。",
+          source: "证券时报 / 中国基金报",
+          url: "https://www.stcn.com/article/detail/4327439.html"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "China's Reserves Hold Above $3.4 Trillion; Gold Bought for a 24th Straight Month",
+            body: "SAFE reported on November 7 that China's foreign exchange reserves stood at $3.4052 trillion at the end of October, up $4.927 billion or 0.14% from September and above $3.4 trillion for a seventh consecutive month. Gold reserves rose by 830,000 ounces to 78.30 million ounces, the 24th consecutive monthly increase. SAFE attributed the increase to exchange-rate translation and asset-price changes rather than to capital flows. The buying streak has run straight through October, a month in which the dollar index strengthened after the payrolls print — in other words, the accumulation did not pause because the dollar got more expensive.",
+          },
+          zh: {
+            title: "外储守住 3.4 万亿，黄金连续第 24 个月增持",
+            body: "国家外汇管理局 11 月 7 日公布，截至 10 月末中国外汇储备 34051.78 亿美元（约 34052 亿），较 9 月末增加 49.27 亿美元、升幅 0.14%，连续七个月站稳 3.4 万亿美元上方。黄金储备 7830 万盎司，环比增加 83 万盎司，为连续第 24 个月增持。外汇局把当月回升归因于汇率折算与资产价格变化，而非跨境资金流入。这条增持的线，穿过了 10 月非农之后美元指数走强的那一段——换句话说，它没有因为「美元又变贵了」而停手。"
+          },
+          why: "外储总量七个月都在 3.4 万亿上方，数字几乎没动，动的是构成。连续 24 个月买黄金不是在追收益——黄金没有现金流——是在为一件事付保费：你持有的资产，可能某一天被另一个国家的一纸命令冻结。记账价和可兑价，从来不是同一个数。",
+          source: "新华财经",
+          url: "https://www.cnfin.com/gs-lb/detail/20261107/4492493_1.html"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "The Only Market Still Quoting: Bitcoin Pinned Near $75,700",
+            body: "With equity, bond and commodity markets shut for the weekend, bitcoin was the only continuously traded price in the stack, and it barely moved: about $75,710 on Sunday morning in Asia, down 0.03% over 24 hours inside a $75,585 to $76,150 range, with roughly 2.3% lost on the week. The damage was done earlier. US spot bitcoin ETFs recorded about $430 million of net outflows on Thursday alone, with Fidelity's FBTC losing roughly $200 million and BlackRock's IBIT roughly $105 million, taking the cumulative outflow to about $870 million for the week through Thursday. Around Friday's payrolls print bitcoin traded between roughly $74,900 and $76,400, briefly clearing $76,100 before settling near $75,600.",
+          },
+          zh: {
+            title: "唯一还在报价的市场：比特币卡在 7.57 万美元",
+            body: "周末股票、债券、商品市场全部休市，比特币是这套资产里唯一还在连续报价的东西，而它几乎没动：周日亚洲时段约 75710 美元，24 小时跌 0.03%，区间 75585 到 76150 美元，全周跌约 2.3%。这周的伤害早就发生了：美国现货比特币 ETF 周四单日净流出约 4.3 亿美元，其中富达 FBTC 约 2 亿、贝莱德 IBIT 约 1.05 亿；本周截至周四累计净流出约 8.7 亿美元。周五非农公布前后，比特币在约 7.49 万至 7.64 万美元之间波动，一度冲上 7.61 万，随后回到 7.56 万附近。"
+          },
+          why: "这周压比特币的不是加密自己的消息，是科技股的抛售加上 ETF 的赎回——它的 beta 现在挂在纳指上，不在「数字黄金」的叙事上。周末只有一个市场在报价这件事本身也有信息量：它给出的是不带任何股市开盘溢价、最干净的一份风险偏好读数。",
+          source: "Bybit（CoinGecko 数据）/ 福建省宝玉石协会转述 ETF 资金流",
+          url: "https://www.bybit.global/zh-MY/coin-price/bitcoin"
+        }
+      ]
+    },
+
+    {
+      id: "geopolitics", name: "地缘政策", nameEn: "Geopolitics", color: "#8B2E2E",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Washington Moves the Iran Blockade From the Sea to the Land",
+            body: "US Central Command said on November 7 that an American military aircraft fired precision munitions at the stern of the St Kitts and Nevis-flagged cargo vessel M/V Huda in the Gulf of Oman, disabling it after the civilian crew ignored repeated warnings and tried several times to breach the naval blockade on Iran; the ship had left regional waters after calling at an Iranian port. Maritime tracker Vesseltracker reported the vessel was hit at anchorage off Khor Fakkan and that the crew was safe. CENTCOM said enforcement since July has redirected 147 commercial vessels, disabled five merchant ships that refused to comply and destroyed 10 Iranian tankers it described as part of an IRGC shadow fleet, and that the blockade has kept about $25 billion of Iranian crude from being sold. The same day, CENTCOM chief Admiral Brad Cooper ordered the creation of Task Force Iron Gate, a roughly 20-person, Florida-based unit meant to stop advanced weapons, dual-use technology, sanctioned materials and illicit revenue from moving across Iran's land borders and the Caspian Sea. Early on Sunday, Iran's Revolutionary Guard navy said two tankers that had switched off navigation and GPS and used an unauthorized route hit mines in the Strait of Hormuz and were burning. Iraq's foreign minister said Iraq alone has lost about $60 billion from the halt in oil exports through the strait.",
+          },
+          zh: {
+            title: "华盛顿把对伊封锁从海上搬到陆地上",
+            body: "美国中央司令部 11 月 7 日称，美军一架军机向悬挂圣基茨和尼维斯国旗的货轮「胡达」号船尾发射精确制导弹药，使其失去航行能力——此前船员多次无视警告、数次试图突破对伊朗的海上封锁，该船刚停靠过伊朗港口。船舶追踪机构 Vesseltracker 称，该船在霍尔奇法坎港外锚地被击中，船员安全。中央司令部称，7 月以来执法已使 147 艘商船改道、使 5 艘拒绝配合的商船失去航行能力、摧毁 10 艘其称为革命卫队「影子船队」的伊朗油轮，封锁已使约 250 亿美元的伊朗原油无法售出。同一天，中央司令部司令库珀下令成立「铁门」特遣队：约 20 人、常驻佛罗里达，任务是阻止先进武器、两用技术、受制裁物资和非法收入经伊朗陆路边境与里海进出。8 日凌晨，伊朗革命卫队海军称，两艘关闭导航与 GPS、走未经授权航道的油轮在霍尔木兹海峡触雷起火。伊拉克外长称，仅伊拉克一国就因海峡出口停摆损失约 600 亿美元。"
+          },
+          why: "海上堵住之后，流量没有消失，它换了一条更贵的路：陆路、里海、中亚铁路。所以「铁门」真正的意义不是多了一支 20 人的队伍，而是官方承认封锁已经把成本挤到了另一条链上。看这条线，盯保险费和陆路运价，比数军舰有用。",
+          source: "新华社 / CBS News（综合 CENTCOM 声明）",
+          url: "http://chinaview.cn/20261108/d71d1d0964c142dbb78eb81caeb8e84f/c.html"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Iran Lifts Its Own Missile Range Cap While the Talks Get Upgraded",
+            body: "The spokesman for Iran's Revolutionary Guard, General Hossein Mohebbi, told a press conference in Tehran that the Guard's self-declared 1,200-mile limit on ballistic missile range has been lifted, saying that restriction has been lifted for us and that Iran would demonstrate the capability in practice rather than in statements. He did not say whether Iran already fields missiles that exceed the old limit. It came days after Supreme Leader Mojtaba Khomeini warned that any threat from the United States or Israel, of any kind or level, would meet a response without geographic limits. On the diplomatic track, Foreign Minister Araghchi said he had spoken by phone with the foreign ministers of 12 countries in 48 hours — Oman, Egypt, Jordan, Saudi Arabia, Qatar, Cyprus, Turkey, Kuwait, the UAE, Tunisia, Iraq and Pakistan. People familiar said Vice President Vance has personally joined the indirect talks with Iran over the past two weeks, aimed at a new ceasefire and a restart of nuclear negotiations, which amounts to an upgrade of the channel. Qatar's prime minister said the two sides had failed to reach a comprehensive agreement and should accept a good deal rather than chase a perfect one. Explosions of unknown origin were heard on the evening of November 7 in Qeshm, Sirik, Jask and Bandar Abbas.",
+          },
+          zh: {
+            title: "伊朗解除自己的导弹射程上限，同时谈判渠道「提级」",
+            body: "伊朗革命卫队发言人穆赫比在德黑兰记者会上说，革命卫队自我设定的 1200 英里弹道导弹射程上限「已经解除」，并称伊朗会在实践中展示能力、而不靠声明。他没有说明伊朗是否已拥有超过该上限的导弹。这发生在几天前最高领袖穆杰塔巴警告「来自美国或以色列的任何形式、任何级别的威胁，都将遭到不受地理限制的回应」之后。外交线上，外长阿拉格齐称过去 48 小时与 12 国外长通电话——阿曼、埃及、约旦、沙特、卡塔尔、塞浦路斯、土耳其、科威特、阿联酋、突尼斯、伊拉克和巴基斯坦。知情人士称，副总统万斯过去两周亲自参与了与伊朗的间接磋商，目标是达成新停火并重启核谈判，这意味着渠道「提级」。卡塔尔首相称美伊未能达成「全面协议」，双方应接受一份「好协议」而不是追求「完美协议」。7 日晚，格什姆岛、锡里克、贾斯克和阿巴斯港等地均听到原因不明的爆炸巨响。"
+          },
+          why: "取消射程上限和谈判渠道提级发生在同一周，这不矛盾——谈判级别越高，双方越需要为谈崩准备一个更好的位置。看这类信号，要看军事动作的技术含义（射程、授权、地理限制），别只看措辞的软硬。",
+          source: "腾讯新闻（综合伊朗方面消息）",
+          url: "https://news.qq.com/rain/a/20261108A03XXQ00"
+        },
+        {
+          importance: 3,
+          en: {
+            title: "Sanctions, a Phone Call, and 72 Hours to the Tariff Deadline",
+            body: "On November 5 the US State Department sanctioned two Chinese companies, reported to be the first time Washington has sanctioned Chinese firms on Cuba-related grounds. On the evening of November 6, Beijing time, Vice Premier He Lifeng held a video call with Treasury Secretary Bessent and Trade Representative Greer; the readout said the two sides exchanged views on implementing the understandings reached by the two presidents and on the outcomes of trade consultations, and that China expressed serious concern about recent US trade and economic restrictions. On November 7 a MOFCOM spokesman said China firmly opposes the sanctions, that taking unilateral measures against Chinese companies on third-party grounds violates international law and basic norms of international relations, that Washington has recently escalated a dense series of discriminatory measures, and that China reserves the right to take necessary measures. The call and the two designations sit inside the same 72 hours as the November 9 expiry of 178 Section 301 product exclusions, which USTR has neither extended nor opened for public comment.",
+          },
+          zh: {
+            title: "两起制裁、一次通话，和距离关税到期只剩 72 小时",
+            body: "11 月 5 日，美国国务院制裁两家中国企业，据报道这是美方首次以涉古巴为由制裁中国企业。11 月 6 日（北京时间当晚），国务院副总理何立峰与美国财长贝森特、贸易代表格里尔举行视频通话；通稿称双方就落实两国元首北京和华盛顿会晤重要共识、经贸磋商成果交换意见，中方就近期美对华经贸限制措施表达严正关切。11 月 7 日，商务部新闻发言人表示坚决反对，称美方以涉及第三方为由对中国企业采取单边制裁违反国际法和国际关系基本准则，近期密集出台多项歧视性限制措施，中方保留采取必要措施的权利。这场通话与这两起制裁，和 178 项 301 关税豁免 11 月 9 日到期，挤在同一个 72 小时里——而美国贸易代表办公室至今既未宣布延期，也未开启公开征求意见。"
+          },
+          why: "「机制还在运转」和「清单会续期」是两件不同的事：通话只能证明沟通渠道没断，豁免能不能续，要靠《联邦公报》上一纸公告。把这两件事记进同一个格子，是过去两年最贵的一种误读。",
+          source: "中华人民共和国商务部",
+          url: "https://www.mofcom.gov.cn/syxwfb/art/2026/art_196a37d8ef564f1bbad2a84f315e5889.html"
+        }
+      ]
+    },
+
+    {
+      id: "tech", name: "科技圈", nameEn: "Technology", color: "#1F5C8B",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "CoreWeave Writes to the Governor-Elect, Offering to Pay for the Grid",
+            body: "On November 7 CoreWeave chief executive Michael Intrator wrote to Texas governor-elect Gina Hinojosa, whose campaign called for pausing data-centre growth until the legislature passes protections for residents, but who has also said already-permitted projects will be allowed to finish. Intrator offered to work with her transition team on completing those projects and on setting durable standards for future ones. The commitments are specific: CoreWeave would fund the substations, transmission upgrades and interconnection work its new facilities require so the cost is not passed to households; new sites would use closed-loop liquid cooling rather than drawing continuously from local water systems; the company would engage communities from the earliest siting conversations and invest in local workforce training. CoreWeave said it operates 51 data centres across North America and Europe with more than 1.5GW of live capacity as of June 30 and about 4.2GW contracted as of August 11, with Texas sites in Austin, Denton, Dickens County, Plano, Richardson and Round Rock. Separately, Meta's president and vice chairman Dina Powell McCormick told the WSJ Tech conference that building from scratch in the US has become very hard while expanding an operating site is easier, that every hyperscaler is now asking whether to build outside the US, and that compute is becoming a scarce asset whose scarcity the market has not fully priced.",
+          },
+          zh: {
+            title: "CoreWeave 给候任州长写信，主动出钱建电网",
+            body: "11 月 7 日，CoreWeave 首席执行官因特拉托致信得州候任州长伊诺霍萨。后者在竞选中主张在州议会通过保护居民的法律之前暂停数据中心扩张，但也明确表示已获许可的项目应被允许建成。因特拉托表示愿意与其过渡团队合作，完成这些项目，并为未来建设制定长期稳定的标准。承诺很具体：新设施接入电网所需的变电站、输电升级和接入工程由公司出资，成本不转嫁给居民家庭；新建设施一律采用闭环液冷，不从当地供水系统持续取水；从最早选址沟通就开始社区参与，并投资本地劳动力培训。公司称截至 6 月 30 日在北美和欧洲运营 51 座数据中心、在运电力容量超过 1.5 吉瓦，截至 8 月 11 日已签约容量约 4.2 吉瓦，得州设施分布在奥斯汀、丹顿、迪肯斯县、普莱诺、理查森和朗德罗克。另外，Meta 总裁兼副董事长麦考密克在 WSJ Tech 大会上说，在美国从零新建已经非常困难、扩建在运站点相对容易，每家大型云厂商都在考虑是否把数据中心建到美国以外，而算力正在变成一种稀缺资产、市场还没有充分定价这种稀缺性。"
+          },
+          why: "数据中心公司开始给候任州长写承诺信——出钱建变电站、改闭环液冷、接受未来监管。不是因为成本变了，是因为「许可」变成了比 GPU 和电力更稀缺的投入品。当一项关键投入从「可采购」变成「可批准」，这个行业的估值方式就从制造业变成了牌照业。",
+          source: "微信公众号（CoreWeave 致函全文 + WSJ Tech 访谈实录）",
+          url: "http://mp.weixin.qq.com/s?__biz=MzkwOTUxMTgyNw==&mid=2247485476&idx=1&sn=e5d283499de0583a78be9a3a4daa0ead"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Fifteen Countries, One Demand: Pause the Data Centres",
+            body: "Protests organised by a coalition called Stop Dirty Data Centres took place across 15 European countries on Saturday, involving more than 100 civic and rights groups. About 2,000 people marched in Dublin and about 1,300 gathered in Helsinki, with smaller demonstrations in other Finnish towns and actions from Scotland to Spain, France and Denmark. The coalition said the aim was to stop the unchecked expansion of AI data centres and to keep democratic institutions from being captured by the interests of large technology companies. In Amsterdam on Friday, hundreds of protesters clashed with police at a Microsoft data centre and one person was arrested. Ireland's Central Statistics Office puts data-centre electricity use at 23% of all metered consumption in 2025, against 5% in 2015. Google announced a 13 billion euro investment in Finland in September, its largest in Europe, and the Confederation of Finnish Industries puts projects at various planning and construction stages there at about 80 billion euros. A builder on one Google project is under criminal investigation over clearing woodland and topsoil before an environmental impact assessment was completed, and the Finnish government is drafting legislation to tighten constraints on AI expansion.",
+          },
+          zh: {
+            title: "15 个国家、同一个诉求：先暂停数据中心",
+            body: "由「停止肮脏数据中心」联盟组织的抗议周六在欧洲 15 个国家同时举行，100 多个民间与权益团体参与。都柏林约 2000 人游行，赫尔辛基约 1300 人集会，芬兰多个小城镇也有示威，从苏格兰到西班牙、法国、丹麦都有行动。联盟称目标是阻止 AI 数据中心不受约束地扩张，防止民主制度被大型科技企业的利益绑架。周五在阿姆斯特丹，数百名抗议者在一处微软数据中心与警方冲突，一人被逮捕。爱尔兰中央统计办公室的数据显示，2025 年数据中心用电占该国电表统计总用电量的 23%，2015 年这一比例是 5%。谷歌 9 月宣布在芬兰投资 130 亿欧元，是其迄今在欧洲最大的一笔；芬兰工业联合会称该国处于不同规划与建设阶段的项目总投资约 800 亿欧元。谷歌一个项目的施工方在环境影响评估完成前就清理林地、剥离表土，目前正被刑事调查；芬兰政府正推动立法，加强对 AI 扩张的约束。"
+          },
+          why: "同一个行业、两个大陆、两套政治制度，同时撞上同一种阻力——这说明它不是监管风格的问题，是电、水、地这些物理约束开始给资本开支定价。资本开支可以在董事会上决定，许可和并网不能。",
+          source: "财联社",
+          url: "https://news.qq.com/rain/a/20261108A02XFT00"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "GitHub Rebuilt Git So That 5,000 Agents Can Push at Once",
+            body: "GitHub disclosed details this week of a rebuilt Git storage layer, internally called Rubicon, first announced at GitHub Universe. Internal testing supported 5,000 concurrent agents on a single repository sending 7,200 pushes a second while keeping read latency low; the numbers are GitHub's own and have not been independently reproduced. The baseline is the informative part: GitHub says its busiest repositories today receive at most dozens of writes in a second, usually in short bursts. One repository's daily requests grew about fourfold between March and May, from 44 million to 181 million, and GitHub set a target of two orders of magnitude more scale rather than planning for the next increment. The design rests on one observation, that very little of a write needs ordering: Git objects are immutable and content-addressed, so pack data now lives in Azure Blob Storage while only reference updates pass through a replicated log called Ref-CAS, committed by quorum, with disposable virtual replicas serving traffic from rebuildable caches. For developers, push, fetch and branch behave exactly as before. It is in limited private preview, with broader rollout planned for early next year.",
+          },
+          zh: {
+            title: "GitHub 重写 Git 存储，为了让 5000 个智能体同时推送",
+            body: "GitHub 本周公开了重建 Git 存储层的细节，内部代号 Rubicon（在 Universe 大会上首次披露）。内部压测支持单个代码仓库 5000 个智能体并发、每秒 7200 次推送，同时保持较低的读取延迟——这组数字是 GitHub 自报，尚无第三方复现。真正有信息量的是基准线：GitHub 称今天最繁忙的仓库每秒最多只有几十次写入，且多为短脉冲。某个仓库的日请求量在 3 月到 5 月间涨了约四倍，从 4400 万次到 1.81 亿次；GitHub 给自己定的目标不是下一个增量，而是再抬两个数量级。整套设计建立在一个观察上：一次写入里需要排序的部分极少——Git 对象不可变且按内容命名，所以 pack 数据搬进 Azure Blob 存储，只有引用更新走一个叫 Ref-CAS 的复制日志，按法定人数提交；对外服务的虚拟副本只是可随时重建的缓存和算力。开发者侧的 push、fetch、branch 完全不变。目前是定向内测，明年年初逐步扩大范围。"
+          },
+          why: "GitHub 的存储层是按「人按需提交」设计的，而最重的负载已经变成机器 7×24 提交——瓶颈从「存不下」变成「排不上队」。任何做 agent 工具的人都会撞上同一堵墙：并发不是模型的问题，是写入排序的问题。",
+          source: "GitHub Engineering Blog（2026-11-05）/ The Terminal 复核",
+          url: "https://theterminal.space/software/github-rubicon-git-storage-7200-pushes-private-preview"
+        }
+      ]
+    },
+
+    {
+      id: "thinking", name: "认知加餐", nameEn: "Thinking", color: "#1F5C4B",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Regulation Does Not Build Walls. It Builds Toll Booths.",
+            body: "Put three facts from the same 48 hours next to each other. The US Treasury sanctioned eight money-service businesses in Canada for converting Iranian rial into digital assets and back — part of the machinery that still lets Iran buy and sell abroad. US Central Command stood up Task Force Iron Gate specifically to cover Iran's land borders and the Caspian Sea, because the sea route has become expensive enough that trade has moved onto trains through Central Asia and across the Caspian to Russia. And Iraq's foreign minister put his country's loss from the halt in Hormuz exports at about $60 billion, which is what a blocked route costs the party with no alternative. There is no wall anywhere in that list. The crude still leaves, the rial still converts, the parts still arrive; each transaction simply travels a longer path and pays a fee to whoever stands on it. That is the reliable arithmetic of any control regime. A sanction does not destroy a flow, it inserts a layer between buyer and seller, and that layer's margin is the price of the restriction. Two things follow. The honest measure of a blockade is not how much was banned but how much the detour costs. And the visible winners of every sanctions regime are the intermediaries: the Dubai trading house, the Kazakh rail forwarder, the Canadian money transmitter, the compliance-software vendor. The same structure runs through export controls, app-store rules and corporate approval chains — every gate grows a toll collector, and the toll collector's revenue is the cleanest available reading of how binding the gate actually is. If a restriction has no toll collector, it is probably not binding. If the toll is expensive, the restriction is working exactly as designed, just not on the party you were watching.",
+          },
+          zh: {
+            title: "管制不造墙，造收费站",
+            body: "把 48 小时里的三件事放在一起看。美国财政部制裁了加拿大境内 8 家资金服务企业，理由是它们帮伊朗把里亚尔换成数字资产再换回来——这是伊朗还能在境外买卖的那套机器。美国中央司令部专门成立「铁门」特遣队去管伊朗的陆路边境和里海，因为海路已经贵到贸易改走中亚铁路、再经里海通往俄罗斯这条线了。伊拉克外长说，仅伊拉克一国就因霍尔木兹出口停摆损失约 600 亿美元——这是「没有替代路线的一方」为堵住的路付的账。这份清单里没有一堵墙。原油照样出去，里亚尔照样兑换，机器零件照样到货；只是每一笔交易都多走一段路，并给站在这段路上的人交一笔费。任何管制制度都是这套算术：制裁不消灭流量，它在买方和卖方之间插进一层，这一层的毛利就是管制的价格。由此有两个推论。衡量封锁是否有效，口径不是禁掉了多少，而是绕路贵了多少。而每一轮制裁里最先富起来的，永远是中间人——迪拜的贸易商、哈萨克斯坦的铁路货代、加拿大的汇款公司、合规软件供应商。出口管制、应用商店规则、公司内部审批链，都是同一个结构：每一道门都会长出收门票的人，而收门票的人的收入，是这道门到底有多硬的最干净读数。如果一项限制里找不到收门票的人，它大概并不真的在起作用；如果门票很贵，说明它起作用了，只是没作用在你盯着的那个对象身上。"
+          },
+          why: "下次看任何一条制裁或管制新闻，先找「谁在这条绕路上收钱」，而不是先猜被管制方的结局。收钱的人的利润率，就是管制强度最诚实的报价。",
+          source: "新华社 / CBS News / 华尔街见闻（同期三则事实）",
+          url: "https://www.cbsnews.com/texas/live-updates/iran-war-trump-us-strait-hormuz-persian-gulf/"
+        }
+      ]
+    }
+  ],
+
+  insight: {
+    title_en: "When New Supply Is Blocked, the Owners Win",
+    title_zh: "限建令的第一受益人是存量",
+    body_en: "On November 3, voters in 43 of the 44 districts that held referendums on the question supported pausing AI data-centre construction, according to a tally cited by Senator Bernie Sanders. Texas elected a governor who campaigned on a pause. On November 7 CoreWeave wrote to her asking, in substance, for one thing: that projects already permitted be allowed to finish. That sentence is the whole trade. A restriction on new supply does two things at once, and they land on different dates. It destroys the option value of the pipeline — the capacity you had not yet built, permitted or powered — and that repricing is immediate, which is why, on Goldman's tally, data-centre equities sit 36% below their highs, memory names 42% and optical networking 46%, on multiples roughly half of June's. And it raises the rent on capacity that already exists, because demand did not fall while the queue for new supply got longer. That second effect never shows up on a screen; it shows up in a contract, at renewal, when the tenant discovers that the alternative is a competitor who cannot build. So the same headline is a sell signal on the growth narrative and a buy signal on the asset itself, and the distance between those two prices is the mispricing. The pattern is old and shows up wherever supply is licensed rather than manufactured: taxi medallions, liquor licences, airport slots, spectrum, water rights, university places. In every case the policy does not reduce demand. It converts a flow of new entrants into a stock of protected incumbents, and the incumbents' pricing power rises by roughly the length of the queue behind them. Which is why the right question about a regulatory shock is never how bad it is, but which side of the wall you are standing on.",
+    body_zh: "据伯尼·桑德斯引用的一项统计，11 月 3 日中期选举中，44 个就「是否暂停 AI 数据中心建设」举行投票的选区里有 43 个投了赞成。得州选出了一位把「暂停」写进竞选纲领的州长。11 月 7 日，CoreWeave 给她写信，实质只求一件事：已经拿到许可的项目，请让它们建完。这一句话就是全部的交易。限制新增供给会同时做两件事，而这两件事落在不同的日期上。第一件，是把「管道」的期权价值打掉——那些还没建成、还没拿到许可、还没通电的产能；这个重定价是立刻发生的，所以按高盛的统计，数据中心类股票较高点回落 36%、内存类 42%、光网络类 46%，估值倍数只剩 6 月的一半左右。第二件，是把已经存在的产能的租金抬上去，因为需求没降，而新供给的排队变长了。第二件事永远不会出现在行情屏上，它出现在合同里、在续约那一天——当租户发现唯一的替代方案，是一个建不出新机房来的竞争对手。所以同一条头条，对增长叙事是卖出信号，对资产本身是买入信号，而这两个价格之间的距离，就是定价错误。这个模式很老，凡是供给靠「批」而不是靠「造」的地方都有：出租车牌照、酒牌、机场时刻、频谱、水权、大学名额。每一次，政策都没有减少需求，它把「新进入者的流量」变成了「被保护的存量的存量」，而存量方的定价能力，大致就涨到它身后那条队伍的长度。这也是为什么面对一次监管冲击，该问的从来不是「有多糟」，而是「我站在墙的哪一边」。",
+    question: "我手里这项资产，属于「可能新增的供给」，还是「被保护起来的存量」？"
+  },
+
+  watch: [
+    { when: "11/9", text: "美东 23:59，178 项对华 301 关税豁免到期，USTR 至今未延期、未开放征求意见；同日对华海事/造船 301 反制暂停期与 BIS「50% 规则」暂停期一并失效。判定看报关放行日，10 月装船的货也可能要按 25% 交。" },
+    { when: "周一", text: "亚洲开盘是周末两次升级的第一次定价：阿曼湾打瘫货轮、铁门特遣队、霍尔木兹两艘油轮触雷。同一天韩国券商 140% 信用担保比例的三个月豁免生效，首尔的开盘会同时消化这两个消息。" },
+    { when: "11/10", text: "美国 10 月 CPI 与核心 CPI——12 月加息定价（非农后约八成）最后一份关键输入；同日 CoreWeave 三季报，它刚给得州写了承诺信，市场要看资本开支与签约容量还撑不撑得住。" },
+    { when: "11/10", text: "中国 10 月 CPI/PPI；同日美俄乌阿布扎比三方会谈开场。乌方此前已自认「不指望突破」，真正的看点是黑海航运降级与能源停火有没有落到纸面。" },
+    { when: "下周", text: "Anthropic 路演窗口（估值预期已从最高 2 万亿美元砍到 1.2-1.3 万亿，FT 称或接近 1.5 万亿）。能不能启动、按什么价签，是 AI 一级市场最直接的一次读数。" }
+  ]
+};
+
+</script>
+<script>
+(function(){
+  var B = window.BRIEFING;
+  var $ = function(s,c){return (c||document).querySelector(s)};
+  var app = $('#app');
+
+  if(!B){ app.innerHTML = '<p style="color:#888;padding:40px 0">未找到简报数据 data/briefing.js</p>'; return; }
+
+  /* ---------- 日期 ---------- */
+  var d = new Date(B.meta.date + 'T07:30:00');
+  var wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  $('#dateline').innerHTML =
+    '<b>'+d.getFullYear()+'.'+mm+'.'+dd+'</b>'+
+    '<span class="sep"></span><span>'+wd+'</span>'+
+    '<span class="sep"></span><span>第 '+B.meta.issue+' 期</span>'+
+    '<span class="sep"></span><span>'+(B.meta.readMinutes||6)+' 分钟读完</span>';
+
+  /* ---------- 渲染 ---------- */
+  var total = B.sections.reduce(function(n,s){return n+s.items.length},0);
+
+  var html = '';
+
+  /* hero */
+  html += '<section class="hero">'+
+    '<div class="kicker">Today in one line</div>'+
+    '<h1>'+esc(B.meta.tldr_en)+'</h1>'+
+    '<p class="zh">'+esc(B.meta.tldr_zh)+'</p>'+
+    '<div class="hero-meta"><span>'+total+' 条精选</span><span>'+B.sections.length+' 个板块</span><span>每日 07:30 更新</span></div>'+
+  '</section>';
+
+  /* ticker */
+  if(B.pulse && B.pulse.length){
+    html += '<div class="ticker-wrap"><div class="ticker">';
+    B.pulse.forEach(function(p){
+      var cls = p.dir === 'up' ? 'up' : p.dir === 'down' ? 'down' : 'flat';
+      html += '<div class="tick"><div class="n">'+esc(p.label)+'</div>'+
+              '<div class="v">'+esc(p.value)+'</div>'+
+              '<div class="c '+cls+'">'+esc(p.change)+'</div></div>';
+    });
+    html += '</div></div>';
+  }
+
+  /* tabs */
+  html += '<nav class="tabs"><button class="tab on" data-f="all">全部</button>';
+  B.sections.forEach(function(s){
+    html += '<button class="tab" data-f="'+s.id+'">'+esc(s.name)+'</button>';
+  });
+  html += '</nav>';
+
+  /* sections */
+  B.sections.forEach(function(sec){
+    html += '<section class="group '+sec.id+'" data-sec="'+sec.id+'">'+
+      '<div class="group-head">'+
+        '<span class="bar" style="background:'+sec.color+'"></span>'+
+        '<h2>'+esc(sec.name)+'</h2>'+
+        '<span class="en">'+esc(sec.nameEn)+'</span>'+
+        '<span class="cnt">'+sec.items.length+'</span>'+
+      '</div>';
+
+    sec.items.forEach(function(it, i){
+      var id = sec.id + '-' + i;
+      var dots = '';
+      for(var k=1;k<=3;k++){ dots += '<i class="'+(k<=(it.importance||2)?'f':'')+'"></i>'; }
+      html += '<article class="card" data-sec="'+sec.id+'" data-id="'+id+'">'+
+        '<div class="card-top">'+
+          '<span class="pill" style="--sec:'+sec.color+'">'+esc(sec.name)+'</span>'+
+          '<span class="imp" title="重要性">'+dots+'</span>'+
+          '<button class="save" data-id="'+id+'" title="收藏">☆</button>'+
+        '</div>'+
+        '<h3 class="t-en">'+esc(it.en.title)+'</h3>'+
+        '<p class="b-en">'+esc(it.en.body)+'</p>'+
+        '<div class="divider">中文</div>'+
+        '<h4 class="t-zh">'+esc(it.zh.title)+'</h4>'+
+        '<p class="b-zh">'+esc(it.zh.body)+'</p>'+
+        '<div class="why"><b>Why it matters · 为什么重要</b><p>'+esc(it.why)+'</p></div>'+
+        '<div class="card-foot"><span>'+esc(it.source)+'</span>'+
+          (it.url?'<a href="'+it.url+'" target="_blank" rel="noopener">原文 →</a>':'')+
+          '<button class="ask-inline" data-ask="'+esc(it.zh.title)+'">问这条</button>'+
+        '</div>'+
+      '</article>';
+    });
+    html += '</section>';
+  });
+
+  /* insight */
+  if(B.insight){
+    var I = B.insight;
+    html += '<section class="insight">'+
+      '<div class="ins-kicker">认知加餐 · Mental Model</div>'+
+      '<h2>'+esc(I.title_en)+'</h2>'+
+      '<div class="h2-zh">'+esc(I.title_zh)+'</div>'+
+      '<p class="en-body">'+esc(I.body_en)+'</p>'+
+      '<p class="zh-body">'+esc(I.body_zh)+'</p>'+
+      '<div class="q">'+esc(I.question)+'</div>'+
+    '</section>';
+  }
+
+  /* watch */
+  if(B.watch && B.watch.length){
+    html += '<section class="watch"><h3>明日关注 · On Deck</h3>';
+    B.watch.forEach(function(w){
+      html += '<div class="w-item"><span class="when">'+esc(w.when)+'</span><span>'+esc(w.text)+'</span></div>';
+    });
+    html += '</section>';
+  }
+
+  html += '<footer>'+
+    '<div class="f-brand"><span class="dot"></span>Buddy Morning Brief</div>'+
+    '<div>'+esc(B.meta.footer||'每天 07:30 更新。内容由 Buddy 从公开信源整理，中英文对照仅供阅读与语言学习，不构成任何投资建议。')+'</div>'+
+    '<div style="margin-top:7px;opacity:.72">编译于 '+esc(B.meta.generatedAt||'')+'</div>'+
+  '</footer>';
+
+  app.innerHTML = html;
+
+  /* ---------- 筛选 ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){x.classList.remove('on')});
+      t.classList.add('on');
+      var f = t.dataset.f;
+      document.querySelectorAll('.group').forEach(function(g){
+        g.style.display = (f==='all' || g.dataset.sec===f) ? '' : 'none';
+      });
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  /* ---------- 进场动画 ---------- */
+  var cards = document.querySelectorAll('.card');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.remove('pending');
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, {rootMargin:'0px 0px -40px 0px', threshold:.05});
+    cards.forEach(function(c,i){
+      c.classList.add('pending');
+      c.style.transitionDelay = (i%3)*55+'ms';
+      io.observe(c);
+    });
+  } else {
+    cards.forEach(function(c){ c.classList.add('in'); });
+  }
+
+  /* ---------- 收藏 ---------- */
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('buddy.saved')||'{}'); } catch(e){}
+  document.querySelectorAll('.save').forEach(function(b){
+    if(saved[b.dataset.id]){ b.classList.add('on'); b.textContent='★'; }
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      var id = b.dataset.id;
+      if(saved[id]){ delete saved[id]; b.classList.remove('on'); b.textContent='☆'; }
+      else { saved[id]=1; b.classList.add('on'); b.textContent='★'; }
+      try{ localStorage.setItem('buddy.saved', JSON.stringify(saved)); }catch(err){}
+    });
+  });
+
+  /* ---------- 语言 ---------- */
+  var langs = ['both','zh','en'];
+  var lang = localStorage.getItem('buddy.lang') || 'both';
+  function applyLang(){
+    document.documentElement.dataset.lang = lang;
+    var lb = $('#langBtn');
+    lb.textContent = lang === 'both' ? '中英' : (lang === 'zh' ? '中' : 'EN');
+    lb.classList.toggle('on', lang !== 'both');
+    lb.title = '当前：' + (lang === 'both' ? '中英对照' : lang === 'zh' ? '仅中文' : '仅英文');
+  }
+  applyLang();
+  $('#langBtn').addEventListener('click', function(){
+    lang = langs[(langs.indexOf(lang)+1) % langs.length];
+    localStorage.setItem('buddy.lang', lang);
+    applyLang();
+  });
+
+  /* ---------- 主题 ---------- */
+  var theme = localStorage.getItem('buddy.theme') ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  function applyTheme(){
+    document.documentElement.dataset.theme = theme;
+    $('meta[name=theme-color]').setAttribute('content', theme==='dark' ? '#100F0D' : '#F4F1EA');
+  }
+  applyTheme();
+  $('#themeBtn').addEventListener('click', function(){
+    theme = theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('buddy.theme', theme);
+    applyTheme();
+  });
+
+  /* ---------- 朗读 ---------- */
+  var speaking = false;
+  $('#speakBtn').addEventListener('click', function(){
+    if(!('speechSynthesis' in window)) return;
+    if(speaking){ speechSynthesis.cancel(); speaking=false; $('#speakBtn').classList.remove('on'); return; }
+    var text = B.meta.tldr_zh + '。' +
+      B.sections.map(function(s){ return s.name + '：' + s.items.map(function(i){return i.zh.title}).join('；'); }).join('。');
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 1.02; u.pitch = 1;
+    u.onend = function(){ speaking=false; $('#speakBtn').classList.remove('on'); };
+    speechSynthesis.speak(u);
+    speaking = true; $('#speakBtn').classList.add('on');
+  });
+
+  /* ---------- 进度条 ---------- */
+  var bar = $('#progress');
+  function onScroll(){
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ---------- utils ---------- */
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(m){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+  }
+})();
+</script>
+</body>
+</html>
