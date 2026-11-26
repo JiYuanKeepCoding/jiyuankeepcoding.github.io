@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-lang="both">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#F6F4EF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Buddy">
+<title>Buddy · 晨间情报</title>
+<style>
+:root{
+  --paper:#F4F1EA; --card:#FFFFFF; --card-2:#FBFAF6;
+  --ink:#17161A; --ink-2:#4B4852; --ink-3:#8A8590;
+  --line:#E5E0D5; --line-2:#EFEBE2;
+  --accent:#1F5C4B; --amber:#B45309;
+  --up:#C0392B; --down:#1E7A54;
+  --shadow:0 1px 2px rgba(30,25,15,.05), 0 8px 24px -12px rgba(30,25,15,.14);
+  --shadow-lg:0 2px 4px rgba(30,25,15,.06), 0 18px 40px -18px rgba(30,25,15,.22);
+  --serif:ui-serif,"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+[data-theme="dark"]{
+  --paper:#100F0D; --card:#1A1917; --card-2:#201E1B;
+  --ink:#F3F0E8; --ink-2:#B7B1A6; --ink-3:#7C776E;
+  --line:#2B2823; --line-2:#232019;
+  --accent:#7CC4A4; --amber:#E0A063;
+  --up:#E4705F; --down:#5FBE94;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  --shadow-lg:0 2px 4px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px; line-height:1.6;
+  transition:background .35s ease,color .35s ease;
+  overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(900px 500px at 50% -180px, rgba(31,92,75,.055), transparent 70%),
+    radial-gradient(700px 400px at 100% 100%, rgba(180,83,9,.045), transparent 70%);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(900px 500px at 50% -180px, rgba(124,196,164,.07), transparent 70%),
+    radial-gradient(700px 400px at 100% 100%, rgba(224,160,99,.05), transparent 70%);
+}
+
+/* ---------- 进度条 ---------- */
+#progress{
+  position:fixed; top:0; left:0; height:2px; width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--amber));
+  z-index:100; transition:width .12s linear;
+}
+
+.wrap{max-width:540px; margin:0 auto; padding:0 20px 64px; position:relative; z-index:1}
+
+/* ---------- 顶栏 ---------- */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px 0 14px; gap:12px;
+}
+.brand{display:flex; align-items:center; gap:9px; font-weight:700; letter-spacing:-.01em; font-size:17px}
+.dot{
+  width:9px;height:9px;border-radius:50%;
+  background:var(--accent); position:relative; flex:none;
+}
+.dot::after{
+  content:""; position:absolute; inset:-4px; border-radius:50%;
+  border:1.5px solid var(--accent); opacity:0;
+  animation:pulse 2.8s ease-out infinite;
+}
+@keyframes pulse{0%{opacity:.55;transform:scale(.7)}70%{opacity:0;transform:scale(1.5)}100%{opacity:0}}
+.brand small{
+  font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); padding-left:9px; margin-left:3px; border-left:1px solid var(--line);
+}
+.head-tools{display:flex; align-items:center; gap:6px}
+.icon-btn{
+  width:34px;height:34px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card); color:var(--ink-2); font-size:15px;
+  display:grid;place-items:center;cursor:pointer;padding:0;
+  transition:all .18s ease;
+}
+.icon-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+[data-theme="dark"] .icon-btn.on{color:#0F211B}
+#langBtn{font-size:11px; font-weight:700; letter-spacing:.02em; font-family:inherit}
+
+/* ---------- 日期带 ---------- */
+.dateline{
+  display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+  padding-bottom:18px; border-bottom:1px solid var(--line);
+  font-size:12.5px; color:var(--ink-3); letter-spacing:.02em;
+}
+.dateline b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+.dateline .sep{width:3px;height:3px;border-radius:50%;background:var(--ink-3);opacity:.5;display:inline-block;transform:translateY(-3px)}
+
+/* ---------- Hero ---------- */
+.hero{padding:30px 0 8px}
+.kicker{
+  font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent); display:flex; align-items:center; gap:8px; margin-bottom:15px;
+}
+.kicker::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.hero h1{
+  font-family:var(--serif); font-weight:600;
+  font-size:26px; line-height:1.34; letter-spacing:-.02em;
+  margin:0 0 14px; text-wrap:balance;
+}
+.hero .zh{
+  font-size:15.5px; line-height:1.85; color:var(--ink-2);
+  margin:0; letter-spacing:.01em;
+}
+.hero-meta{
+  display:flex; gap:14px; flex-wrap:wrap; margin-top:18px;
+  font-size:11.5px; color:var(--ink-3); letter-spacing:.03em;
+}
+.hero-meta i{font-style:normal; font-variant-numeric:tabular-nums}
+
+/* ---------- 市场条 ---------- */
+.ticker-wrap{margin:26px -20px 0; padding:0}
+.ticker{
+  display:flex; gap:9px; overflow-x:auto; padding:4px 20px 12px;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
+}
+.ticker::-webkit-scrollbar{display:none}
+.tick{
+  flex:none; min-width:96px; scroll-snap-align:start;
+  background:var(--card); border:1px solid var(--line);
+  border-radius:14px; padding:10px 12px 9px;
+  box-shadow:var(--shadow);
+}
+.tick .n{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:600; white-space:nowrap}
+.tick .v{font-size:16px; font-weight:650; font-variant-numeric:tabular-nums; letter-spacing:-.02em; margin-top:2px}
+.tick .c{font-size:11.5px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:1px}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--ink-3)}
+
+/* ---------- 筛选 tab ---------- */
+.tabs{
+  position:sticky; top:0; z-index:30;
+  display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;
+  margin:14px -20px 0; padding:12px 20px;
+  background:linear-gradient(to bottom, var(--paper) 62%, transparent);
+  backdrop-filter:blur(8px);
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:none; border:1px solid var(--line); background:var(--card);
+  color:var(--ink-2); font-size:12.5px; font-weight:600; font-family:inherit;
+  padding:7px 14px; border-radius:999px; cursor:pointer;
+  transition:all .2s ease; white-space:nowrap;
+}
+.tab:active{transform:scale(.96)}
+.tab.on{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+[data-theme="dark"] .tab.on{background:var(--ink); color:#100F0D}
+
+/* ---------- 板块标题 ---------- */
+.group{margin-top:30px; animation:fadeUp .5s ease both}
+.group-head{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.group-head .bar{width:3px;height:15px;border-radius:2px;flex:none}
+.group-head h2{margin:0; font-size:13px; font-weight:700; letter-spacing:.06em}
+.group-head .en{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.group-head .cnt{margin-left:auto; font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+
+/* ---------- 卡片 ---------- */
+.card{
+  position:relative; background:var(--card); border:1px solid var(--line);
+  border-radius:19px; padding:19px 18px 16px; margin-bottom:13px;
+  box-shadow:var(--shadow);
+  transition:box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+.card.pending{opacity:0; transform:translateY(14px)}
+.card.in{opacity:1; transform:none; transition:opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1), box-shadow .25s ease, border-color .25s ease}
+.card:active{transform:scale(.995)}
+.card.flash{border-color:var(--amber)}
+.card-top{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+.pill{
+  --sec:#888888;
+  font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  padding:3.5px 9px; border-radius:7px; white-space:nowrap;
+  background:rgba(120,120,120,.12); color:var(--sec);
+  background:color-mix(in srgb, var(--sec) 12%, transparent);
+}
+[data-theme="dark"] .pill{
+  background:color-mix(in srgb, var(--sec) 20%, transparent);
+  color:color-mix(in srgb, var(--sec) 38%, #ffffff);
+}
+.imp{display:flex; gap:2.5px; margin-left:auto; align-items:center}
+.imp i{width:4px;height:4px;border-radius:50%;background:var(--line);display:block}
+.imp i.f{background:var(--amber)}
+.save{
+  background:none;border:none;padding:2px 0 2px 8px;cursor:pointer;
+  color:var(--ink-3); font-size:15px; line-height:1; font-family:inherit;
+  transition:transform .2s ease, color .2s ease;
+}
+.save:active{transform:scale(1.3)}
+.save.on{color:var(--amber)}
+
+.t-en{
+  font-family:var(--serif); font-weight:600; font-size:20px; line-height:1.32;
+  letter-spacing:-.015em; margin:0 0 9px;
+}
+.b-en{
+  font-size:14.5px; line-height:1.66; color:var(--ink-2); margin:0;
+  letter-spacing:.004em;
+}
+.divider{
+  display:flex; align-items:center; gap:10px; margin:15px 0 13px;
+  font-size:9.5px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:700;
+}
+.divider::before,.divider::after{content:""; height:1px; background:var(--line-2); flex:1}
+.divider::before{flex:0 0 22px}
+.t-zh{font-size:16.5px; font-weight:650; line-height:1.55; margin:0 0 8px; letter-spacing:-.005em}
+.b-zh{font-size:14.5px; line-height:1.88; color:var(--ink-2); margin:0; letter-spacing:.012em}
+
+.why{
+  margin-top:14px; padding:12px 13px 12px 14px;
+  background:var(--card-2); border-radius:12px;
+  border-left:2.5px solid var(--amber);
+}
+.why b{
+  display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--amber); margin-bottom:5px; font-weight:700;
+}
+.why p{margin:0; font-size:13.5px; line-height:1.8; color:var(--ink-2); letter-spacing:.01em}
+
+.card-foot{
+  display:flex; align-items:center; gap:8px; margin-top:14px;
+  font-size:10.5px; color:var(--ink-3); letter-spacing:.03em;
+}
+.card-foot a{margin-left:auto; color:var(--ink-3); text-decoration:none; border-bottom:1px dotted var(--line); padding-bottom:1px}
+.card-foot a:hover{color:var(--accent); border-color:var(--accent)}
+
+/* ---------- 语言模式 ---------- */
+[data-lang="zh"] .t-en,[data-lang="zh"] .b-en,[data-lang="zh"] .divider{display:none}
+[data-lang="zh"] .t-zh{font-size:18px}
+[data-lang="en"] .t-zh,[data-lang="en"] .b-zh,[data-lang="en"] .divider,[data-lang="en"] .why{display:none}
+[data-lang="en"] .hero .zh{display:none}
+[data-lang="en"] .t-en{font-size:21px}
+[data-lang="zh"] .hero h1{display:none}
+
+/* ---------- 认知卡 ---------- */
+.insight{
+  margin-top:38px; border-radius:22px; overflow:hidden;
+  background:linear-gradient(165deg,#17332B 0%, #10241E 60%, #0D1D18 100%);
+  color:#EFEDE4; padding:26px 22px 24px;
+  box-shadow:var(--shadow-lg); position:relative;
+}
+[data-theme="dark"] .insight{
+  background:linear-gradient(165deg,#1C3B31 0%, #14291F 60%, #0F2018 100%);
+  border:1px solid rgba(124,196,164,.16);
+}
+.insight::after{
+  content:""; position:absolute; top:-60px; right:-50px; width:200px; height:200px;
+  border-radius:50%; background:radial-gradient(circle,rgba(224,160,99,.22),transparent 68%);
+}
+.ins-kicker{
+  font-size:9.5px; letter-spacing:.24em; text-transform:uppercase;
+  color:#D9A66B; font-weight:700; margin-bottom:14px;
+  display:flex; align-items:center; gap:8px; position:relative; z-index:1;
+}
+.insight h2{
+  font-family:var(--serif); font-size:22px; font-weight:600; line-height:1.3;
+  margin:0 0 6px; letter-spacing:-.015em; position:relative; z-index:1;
+}
+.insight .h2-zh{
+  font-family:var(--sans); font-size:15px; font-weight:600; color:#C9C5B8;
+  margin:0 0 16px; letter-spacing:.02em; position:relative; z-index:1;
+}
+.insight p{
+  font-size:13.5px; line-height:1.78; color:#BEB9AC; margin:0 0 12px;
+  position:relative; z-index:1;
+}
+.insight .zh-body{font-size:14px; line-height:1.9; color:#DCD8CB; letter-spacing:.012em}
+.insight .q{
+  margin-top:18px; padding-top:16px; border-top:1px solid rgba(255,255,255,.1);
+  font-size:14px; line-height:1.85; color:#F2EEE0; position:relative; z-index:1;
+}
+.insight .q::before{
+  content:"?"; display:inline-grid; place-items:center;
+  width:17px;height:17px; border-radius:50%;
+  background:rgba(224,160,99,.2); color:#E8B87F;
+  font-size:11px; font-weight:700; margin-right:7px; vertical-align:1px;
+}
+[data-lang="en"] .insight .zh-body,[data-lang="en"] .insight .h2-zh,[data-lang="en"] .insight .q{display:none}
+[data-lang="zh"] .insight h2,[data-lang="zh"] .insight p.en-body{display:none}
+[data-lang="zh"] .insight .h2-zh{font-size:19px;color:#fff;font-weight:700;margin-bottom:14px}
+
+/* ---------- 明日关注 ---------- */
+.watch{margin-top:34px}
+.watch h3{
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:700; margin:0 0 13px;
+  display:flex; align-items:center; gap:9px;
+}
+.watch h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.w-item{
+  display:flex; gap:12px; padding:11px 0; border-bottom:1px solid var(--line-2);
+  font-size:13.5px; line-height:1.66; color:var(--ink-2);
+}
+.w-item:last-child{border-bottom:none}
+.w-item .when{
+  flex:none; width:42px; font-size:10.5px; font-weight:700; color:var(--accent);
+  letter-spacing:.04em; padding-top:2.5px; font-variant-numeric:tabular-nums;
+}
+
+footer{
+  margin-top:40px; padding-top:22px; border-top:1px solid var(--line);
+  font-size:11px; line-height:1.85; color:var(--ink-3); letter-spacing:.02em;
+}
+footer .f-brand{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-weight:600;font-size:12px;margin-bottom:9px}
+footer .f-brand .dot{width:6px;height:6px}
+footer .f-brand .dot::after{display:none}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+@media (min-width:640px){
+  .hero h1{font-size:30px}
+  .wrap{padding-bottom:90px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .card,.card.pending{opacity:1!important;transform:none!important}
+}
+
+/* ---------- Ask AI：浮标 ---------- */
+.ask-fab{
+  position:fixed; right:18px; bottom:20px; z-index:80;
+  height:48px; padding:0 17px 0 13px; border-radius:999px;
+  border:none; background:var(--accent); color:#fff;
+  display:flex; align-items:center; gap:7px;
+  font-family:inherit; font-size:13.5px; font-weight:700; letter-spacing:.02em;
+  box-shadow:0 8px 22px -8px rgba(31,92,75,.6), 0 2px 5px rgba(30,25,15,.18);
+  cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, opacity .2s ease;
+}
+[data-theme="dark"] .ask-fab{color:#0F211B}
+.ask-fab:active{transform:scale(.94)}
+.ask-fab svg{width:15px;height:15px;display:block}
+.ask-fab.hide{opacity:0;pointer-events:none;transform:scale(.9)}
+body.has-ask .wrap{padding-bottom:120px}
+
+/* ---------- Ask AI：面板 ---------- */
+.ask-scrim{
+  position:fixed; inset:0; z-index:90;
+  background:rgba(18,16,12,.44); backdrop-filter:blur(2px);
+  opacity:0; pointer-events:none; transition:opacity .3s ease;
+}
+.ask-scrim.on{opacity:1;pointer-events:auto}
+
+.ask-sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:95;
+  height:78vh; max-height:78vh;
+  display:flex; flex-direction:column;
+  background:var(--card); border:1px solid var(--line); border-bottom:none;
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -14px 44px -14px rgba(30,25,15,.34);
+  transform:translateY(102%);
+  transition:transform .34s cubic-bezier(.22,.9,.28,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.ask-sheet.on{transform:none}
+@media (min-width:640px){
+  .ask-sheet{left:calc(50% - 270px); right:calc(50% - 270px)}
+}
+
+.ask-head{
+  display:flex; align-items:center; gap:9px;
+  padding:16px 18px 12px; border-bottom:1px solid var(--line-2); flex:none;
+}
+.ask-head .ttl{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.ask-head .ttl .dot{width:7px;height:7px}
+.ask-head .ttl .dot::after{display:none}
+.ask-head .sub{font-size:10.5px;color:var(--ink-3);letter-spacing:.06em;font-weight:600;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.ask-quota{
+  margin-left:auto; flex:none; display:inline-flex; align-items:center; gap:5px;
+  height:24px; padding:0 9px; border-radius:20px; cursor:pointer;
+  border:1px solid var(--line); background:transparent; color:var(--ink-3);
+  font-family:inherit; font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  white-space:nowrap; transition:background .2s,color .2s,border-color .2s;
+}
+.ask-quota:active{transform:scale(.96)}
+.ask-quota.warn{color:#B4552F;border-color:rgba(180,85,47,.45)}
+.ask-quota.out{background:#B4552F;border-color:#B4552F;color:#fff}
+.ask-head .ask-x{margin-left:8px}
+.ask-x{
+  margin-left:auto; width:30px;height:30px;border-radius:9px;
+  border:1px solid var(--line); background:transparent; color:var(--ink-3);
+  font-family:inherit; font-size:13px; cursor:pointer; display:grid;place-items:center;
+}
+.ask-x:active{transform:scale(.92)}
+
+.ask-log{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 18px 6px}
+.ask-log::-webkit-scrollbar{width:0}
+.msg{display:flex; margin-bottom:13px; animation:fadeUp .3s ease both}
+.msg.u{justify-content:flex-end}
+.bub{
+  max-width:87%; border-radius:16px; padding:10px 14px;
+  font-size:14px; line-height:1.8; letter-spacing:.01em; word-break:break-word;
+}
+.msg.u .bub{background:var(--accent); color:#fff; border-bottom-right-radius:5px; font-size:14px}
+[data-theme="dark"] .msg.u .bub{color:#0F211B}
+.msg.b .bub{
+  background:var(--card-2); border:1px solid var(--line); color:var(--ink-2);
+  border-bottom-left-radius:5px;
+}
+.bub strong{color:var(--ink); font-weight:700}
+[data-theme="dark"] .msg.u .bub strong{color:#0F211B}
+.bub ul{margin:6px 0; padding-left:16px}
+.bub li{margin:3px 0}
+.bub .src{display:block;margin-top:8px;font-size:11px;color:var(--ink-3);letter-spacing:.03em}
+.msg.err .bub{background:rgba(192,57,43,.08); border-color:rgba(192,57,43,.3); color:var(--up)}
+
+.think{display:inline-flex; gap:4px; align-items:center; padding:3px 0}
+.think i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);opacity:.4;animation:blink 1.2s infinite}
+.think i:nth-child(2){animation-delay:.18s}
+.think i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:.9;transform:translateY(-2px)}}
+
+.ask-chips{
+  display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;
+  padding:8px 18px 10px; flex:none;
+}
+.ask-chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:none; border:1px solid var(--line); background:var(--card-2);
+  color:var(--ink-2); font-family:inherit; font-size:12px; font-weight:600;
+  padding:7px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
+  transition:all .18s ease;
+}
+.chip:active{transform:scale(.96); border-color:var(--accent); color:var(--accent)}
+
+.ask-form{
+  display:flex; align-items:flex-end; gap:8px; flex:none;
+  padding:10px 18px 12px; border-top:1px solid var(--line-2);
+}
+.ask-mic{
+  flex:none; width:40px; height:40px; border-radius:13px;
+  border:1px solid var(--line); background:var(--card-2); color:var(--ink-2);
+  display:grid; place-items:center; cursor:pointer; padding:0;
+  transition:all .2s ease; touch-action:none;
+}
+.ask-mic svg{width:16px;height:16px}
+.ask-mic.on{background:var(--up); border-color:var(--up); color:#fff; transform:scale(1.06)}
+.ask-mic.on::after{content:"";position:absolute;width:40px;height:40px;border-radius:13px;border:2px solid var(--up);animation:micring 1.3s ease-out infinite}
+@keyframes micring{0%{opacity:.6;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}
+.ask-mic.na{opacity:.5}
+#askInput{
+  flex:1; min-width:0; min-height:40px; max-height:120px; resize:none;
+  border:1px solid var(--line); border-radius:13px; background:var(--card-2);
+  color:var(--ink); font-family:inherit; font-size:14.5px; line-height:1.5;
+  padding:10px 12px; outline:none; transition:border-color .18s ease;
+}
+#askInput:focus{border-color:var(--accent)}
+#askInput::placeholder{color:var(--ink-3)}
+.ask-send{
+  flex:none; width:40px;height:40px;border-radius:13px;border:none;
+  background:var(--accent); color:#fff; font-size:16px; font-weight:700;
+  cursor:pointer; display:grid; place-items:center; padding:0;
+  transition:all .18s ease;
+}
+[data-theme="dark"] .ask-send{color:#0F211B}
+.ask-send:disabled{opacity:.35}
+.ask-send:active{transform:scale(.93)}
+.ask-hint{
+  flex:none; padding:0 18px 8px; font-size:11px; color:var(--ink-3);
+  letter-spacing:.03em; min-height:15px;
+}
+.ask-hint.live{color:var(--up); font-weight:600}
+
+/* 卡片上的「问这条」 */
+.ask-inline{
+  margin-left:10px; border:1px solid var(--line); background:var(--card-2);
+  color:var(--ink-3); font-family:inherit; font-size:10.5px; font-weight:600;
+  padding:3px 9px; border-radius:7px; cursor:pointer; letter-spacing:.02em;
+  transition:all .18s ease;
+}
+.ask-inline:active{transform:scale(.94); border-color:var(--accent); color:var(--accent)}
+</style>
+<meta name="robots" content="noindex,nofollow">
+<!-- bb-mwy6y4i3 -->
+<style>
+/* 线上静态版：无 server，隐藏问 AI 入口 */
+.ask-inline{display:none!important}
+/* 往期导航卡片 */
+.brief-nav{margin:30px 0 0;font-family:var(--sans)}
+.brief-nav a{display:flex;justify-content:space-between;align-items:center;gap:16px;
+padding:15px 18px;border:1px solid var(--line);border-radius:14px;
+background:var(--card);color:var(--ink);text-decoration:none;font-size:13.5px;
+letter-spacing:.01em;transition:border-color .18s ease}
+.brief-nav a+a{margin-top:10px}
+.brief-nav a:hover{border-color:var(--ink-3)}
+.brief-nav a:active{transform:scale(.99)}
+.brief-nav .sub{color:var(--ink-3);font-size:12px}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span>Buddy<small>Morning Brief</small></div>
+    <div class="head-tools">
+      <button class="icon-btn" id="langBtn" title="切换语言">EN</button>
+      <button class="icon-btn" id="speakBtn" title="朗读今日摘要">♪</button>
+      <button class="icon-btn" id="themeBtn" title="切换主题">◐</button><a class="icon-btn" href="../" title="回今天的简报" style="text-decoration:none">今</a>
+    </div>
+  </header>
+
+  <div class="dateline" id="dateline"></div>
+
+  <div id="app"></div>
+
+  <nav class="brief-nav"><a href="../"><span>回今天的简报</span><span class="sub">最新一期</span></a><a href="./"><span>往期简报</span><span class="sub">最近 7 天</span></a></nav>
+</div>
+
+
+
+<script>
+/* Buddy Morning Brief — 数据文件
+ * 每天由 Buddy 更新此文件即可，index.html 无需改动。
+ * 字段说明见 README.md
+ */
+window.BRIEFING = {
+  meta: {
+    date: "2026-11-27",
+    issue: "034",
+    readMinutes: 10,
+    generatedAt: "2026-11-27 07:30 GMT+8",
+    tldr_en: "US cash and bond markets were shut for Thanksgiving, so the rest of the world repriced Wednesday's rout upward - Stoxx 600 +2.03%, DAX +2.14%, Hang Seng +1.19%, SoftBank +7% - on the judgment that the Section 301 slate was less severe than feared. The actual new information was physical, not financial: Nvidia told partners to stop shipping chip-bearing servers to Malaysia, Singapore, Thailand and Indonesia under the Commerce Department's 16 November licence rule, a market where it booked 104 billion dollars of 2025 revenue through its Singapore subsidiary; and Iran said two tankers struck mines in the Strait of Hormuz, one a VLCC carrying more than 2 million barrels, with daily transits down to about 38 vessels against roughly 138 before the conflict.",
+    tldr_zh: "感恩节美股美债全休，世界其他市场把周三的窟窿往上补：斯托克 600 涨 2.03%、DAX 涨 2.14%、恒指涨 1.19%、软银涨 7%，理由是「301 清单没有想象中重」。但真正的新信息是物理层面的，不是金融层面的：英伟达按商务部 11 月 16 日的许可证新规，通知伙伴停止向马来西亚、新加坡、泰国、印尼发运含其芯片的服务器——这块市场 2025 年通过新加坡子公司入账 1,040 亿美元；同日伊朗称两艘油轮在霍尔木兹触雷，其中一艘载油超 200 万桶，海峡日通行量已降到约 38 艘，冲突前是 138 艘。"
+  },
+
+  pulse: [
+    { label: "Brent",   value: "96.57",  change: "+2.07%", dir: "up" },
+    { label: "WTI",     value: "84.91",  change: "+1.47%", dir: "up" },
+    { label: "S&P 500", value: "7,183",  change: "0.00%",  dir: "flat" },
+    { label: "Dow",     value: "50,183", change: "0.00%",  dir: "flat" },
+    { label: "Nasdaq",  value: "23,586", change: "0.00%",  dir: "flat" },
+    { label: "US 10Y",  value: "4.84%",  change: "-1.4bp", dir: "down" },
+    { label: "Gold",    value: "3,567",  change: "-0.61%", dir: "down" },
+    { label: "BTC",     value: "60,730", change: "+3.9%",  dir: "up" }
+  ],
+
+  sections: [
+    {
+      id: "markets", name: "财经市场", nameEn: "Markets", color: "#B45309",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Europe and Asia Do the Rebound While New York Sleeps: Stoxx 600 +2.03%, DAX +2.14%, Hang Seng +1.19%",
+            body: "With US cash equities and Treasuries shut for Thanksgiving, the rest of the world repriced Wednesday's semiconductor rout upward. The Stoxx Europe 600 rose 2.03%, Germany's DAX 2.14% to 25,231.42, France's CAC 40 1.61% to 8,108.74, the FTSE 100 1.75% to 10,609.30, Italy's FTSE MIB 2.71% and Spain's IBEX 35 2.62%, with the Euro Stoxx 50 up 2.11% to 6,018.65. The Stoxx 600 technology index gained about 2.5% intraday and is still down roughly 12% this month. Infineon added more than 4%, ASML and ASM International more than 3%, BE Semiconductor 3.5%. Asia followed: the Nikkei 225 rose 0.86% to 57,499.16, the KOSPI 0.29% to 4,711.21, Australia's ASX 200 0.82%, and Hong Kong's Hang Seng 1.19% to 22,266.88 with Hang Seng Tech up 1.16%. SoftBank Group jumped more than 7%, Advantest 4.57%, SK Hynix more than 2% and Samsung Electronics 0.35%. The catalyst was a second reading of an old document rather than new information: investors decided the Section 301 slate was less severe than feared, and that a roughly 3,500-point two-day fall in the S&P was worth buying in thin holiday volume. Futures pointed higher, with Nasdaq futures up 0.75% before Friday's shortened session. AJ Bell's Russ Mould supplied the standard objection - higher oil is bad for inflation, and the targeted economies may retaliate.",
+            },
+          zh: {
+            title: "纽约睡觉的时候，欧亚把反弹做完了：斯托克 600 涨 2.03%、DAX 涨 2.14%、恒指涨 1.19%",
+            body: "感恩节美股现货和美债全天休市，世界其他地方把周三的半导体屠杀往上补了一遍。泛欧斯托克 600 涨 2.03%，德国 DAX 涨 2.14% 报 25,231.42，法国 CAC 40 涨 1.61% 报 8,108.74，英国富时 100 涨 1.75% 报 10,609.30，意大利富时 MIB 涨 2.71%、西班牙 IBEX 35 涨 2.62%，欧洲斯托克 50 涨 2.11% 报 6,018.65；斯托克 600 科技指数盘中涨约 2.5%，但本月至今仍跌约 12%。英飞凌涨超 4%，阿斯麦、ASM International 涨超 3%，BE Semiconductor 涨 3.5%。亚洲跟上：日经 225 涨 0.86% 报 57,499.16，韩国综指涨 0.29% 报 4,711.21，澳洲 ASX 200 涨 0.82%，恒指涨 1.19% 报 22,266.88、恒生科技涨 1.16%。软银集团暴涨超 7%，爱德万测试涨 4.57%，SK 海力士涨超 2%，三星电子涨 0.35%。触发点不是新消息，是对同一份旧文件的第二次解读：投资者认定 301 清单没有想象中重，标普两天跌掉的约 3,500 点在假期薄量里值得买。周五缩短交易时段前，纳指期货涨 0.75%。AJ Bell 的 Russ Mould 给了标准反对意见——油价走高不利于通胀，被点名的经济体也可能反制。",
+          },
+          why: "薄量里的反弹不构成风险解除：科技指数月内还跌 12%，涨的理由是「文件没那么狠」——这是第二次解读，不是新信息。假期里的涨跌多半是仓位，不是观点。",
+          source: "FX168 / 国际金融报 / 中国证券网",
+          url: "https://news.qq.com/rain/a/20261127A00ZP300"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Shanghai Up 0.01%, ChiNext 0.29%, But Turnover Shrinks Again: Index Stable, Stocks Weak",
+            body: "The headline indices hid a rotation. The Shanghai Composite closed up 0.01% at 3,476.88 after turning green in late trade, ChiNext rose 0.29% to 2,189.82, the Shenzhen Component slipped 0.02% to 10,084.04 and the STAR Composite fell 1%. Turnover across Shanghai and Shenzhen was 1.3173 trillion yuan, down another 65.8 billion from the previous session and the second consecutive contraction, with roughly 1,700 stocks up and close to 70 limit-ups. The money went to two places. One was AI hardware, but only the parts with orders: communications drew more than 4.1 billion yuan of net institutional inflow, the largest of any sector, with Zhongji Innolight taking 1.69 billion and Eoptolink 960 million, while PCB and optical-module names led and advanced packaging rallied again. The other was cash flow that can be counted this quarter: PetroChina, CNOOC and Sinopec each gained more than 3%, China Shenhua more than 2%, and banks were bought in the afternoon with Bank of Nanjing, Bank of Chengdu, Bank of Communications, China CITIC Bank and Bank of Jiangsu all at record highs. Precious metals, components and coal topped the sector table; airlines and airports, biologics, robotics, medical devices, passenger vehicles and aerospace equipment lagged.",
+          },
+          zh: {
+            title: "沪指涨 0.01%、创业板涨 0.29%，成交再缩：指数稳住、个股走弱",
+            body: "指数掩盖了一次换仓。上证尾盘翻红，收涨 0.01% 报 3,476.88；创业板指涨 0.29% 报 2,189.82；深成指跌 0.02% 报 10,084.04；科创综指跌 1%。沪深两市成交 1.3173 万亿元，比前一日再缩 658 亿，连续第二个交易日缩量；全市场约 1,700 只上涨、近 70 只涨停。钱去了两个地方。一是算力硬件，但只买有订单的那一段：通信行业主力净流入超 41 亿元、居全市场首位，中际旭创净流入 16.9 亿、新易盛 9.6 亿，PCB 与光模块领涨，先进封装再度走强。二是这个季度能算清的现金流：中国石油、中国海油涨超 3%，中国石化、中国神华涨超 2%；银行午后被拉起，南京银行、成都银行、交通银行、中信银行、江苏银行盘中均创历史新高。贵金属、元件、煤炭居板块涨幅前列；航空机场、生物制品、机器人、医疗器械、乘用车、航天装备跌幅居前。",
+          },
+          why: "连续三天缩量、指数不跌，说明钱没走、只是换了坐法：从「有没有故事」换到「这个季度能不能算清」——算力只买有订单的 PCB/光模块，权重只买分红和油价。这种结构通常不是趋势起点，是调仓中段。",
+          source: "上海证券报 / 东方财富 / 腾讯财经",
+          url: "https://paper.cnstock.com/html/2026-11/27/content_2295019.htm"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Gold Loses 0.6% at 3,566.84 After Breaking 3,500, Silver Diverges, and a December Hike Is 97.2% Priced",
+            body: "Spot gold fell 0.61% to 3,566.84 dollars an ounce on Thursday, having briefly broken below the 3,500 line on Wednesday for the first time since September 2025; COMEX gold futures for December rose 0.81% to 3,593.40 and COMEX silver jumped 2.99% to 41.75 while spot silver added just 0.39% to 41.54 - precious metals took different paths on the same day, which is what happens when part of the bid is industrial and part is monetary. The CME FedWatch tool showed a 97.2% probability of a 25 basis point hike at the 9 December meeting; the Fed already raised rates in September, its first increase in three years. The dollar index held at 103.78, up 0.05% and just below its highest since March 2025. HSBC said continued equity weakness puts gold at risk of falling below 3,400 dollars. OCBC's Sim Moh Siong argued the risk-reward on further dollar longs has deteriorated, but a hawkish Fed should keep the currency supported. Asian trading on Friday morning put spot gold near 3,565.",
+          },
+          zh: {
+            title: "黄金跌破 3500 后收跌 0.61% 至 3566.84，白银分道扬镳，12 月加息已被定价 97.2%",
+            body: "现货黄金周四跌 0.61%，收报 3,566.84 美元/盎司；周三它曾短暂跌破 3,500 这一关口，是 2025 年 9 月以来首次。COMEX 12 月黄金期货反而涨 0.81% 报 3,593.40；COMEX 白银期货涨 2.99% 报 41.75，现货白银只涨 0.39% 报 41.54——同一天贵金属走了两条路，说明买盘里一半是工业属性、一半是货币属性。CME 美联储观察工具显示，12 月 9 日加息 25 个基点的概率为 97.2%；美联储 9 月已经加过一次，是三年来的首次。美元指数持稳 103.78、涨 0.05%，略低于 2025 年 3 月以来最高水平。汇丰称股市持续疲软可能把金价压到 3,400 美元以下；华侨银行的 Sim Moh Siong 认为继续追涨美元的风险回报已经变差，但美联储偏鹰仍会托住美元。周五亚市早盘现货金在 3,565 附近。",
+          },
+          why: "加息 97.2% 已被完全定价，黄金却没有继续崩——压着金价的不是 12 月这一次，是 2027 年初还加不加。金价现在测的是「加息终点」的价格，不是「加息次数」的价格。",
+          source: "汇通财经 / 国际金融报 / 中国证券网",
+          url: "https://finance.sina.com.cn/money/forex/hbfx/2026-11-27/doc-inkacksu5697049.shtml"
+        }
+      ]
+    },
+
+    {
+      id: "geopolitics", name: "地缘政策", nameEn: "Geopolitics", color: "#8B2E2E",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Two Tankers Hit Mines in Hormuz, One Loaded With Over 2 Million Barrels, and Daily Transits Are 38 Against 138",
+            body: "Iran's Revolutionary Guard navy said on 26 November that two tankers struck mines north of Oman's Khasab port and caught fire, one of them a very large crude carrier loaded with more than 2 million barrels that was still burning. The statement said both vessels had switched off their navigation systems and were trying to take an unauthorised route under escort by US fighter aircraft. Britain's UKMTO separately reported an explosion caused by an unidentified projectile near a tanker about 50 nautical miles west of Dubai; the two agencies have described the same waters differently for months, with UKMTO using unidentified projectile and the IRGC attributing incidents to mines and unauthorised lanes. The count that matters is not the hulls but the throughput: about 38 vessels a day are transiting with US military assistance against roughly 138 before the conflict, some 218 merchant ships are waiting at the main eastern anchorages, and about 141 tankers - 72% of them VLCCs - are tied up in ship-to-ship transfers, leaving an estimated 639 VLCCs available for mainstream business. A single STS round trip has fallen to about 14 days from 25 in August. Xinde Marine, citing gCaptain, put the number of tankers attacked in the Strait over the past week at 10; the IMO counted 141 incidents and 25 crew deaths in the area as of 23 November, with the threat level still rated severe. Brent settled Thursday at 96.57, up 2.07%, WTI at 84.91, up 1.47%, and Murban at 84.19, down 0.94%. China's consulate in Jeddah repeated a security warning to Chinese firms and citizens after drones were intercepted over the city's port facilities.",
+          },
+          zh: {
+            title: "霍尔木兹两艘油轮触雷，一艘载油超 200 万桶；日通行量 38 艘，冲突前 138 艘",
+            body: "伊朗革命卫队海军 11 月 26 日称，两艘油轮在阿曼海塞卜港以北水域触雷起火，其中一艘是装载超 200 万桶原油的超大型油轮（VLCC），事发后仍在燃烧；声明说两船关闭了导航系统，试图在美军战机护航下取道未经许可的航道通过海峡。英国海上贸易行动办公室同日通报，迪拜以西约 50 海里处一艘油轮附近发生由「不明投射物」引发的爆炸——两家机构对同一片水域的口径长期不同：前者说「不明投射物」，后者归因于水雷与未授权航道。真正要看的不是船，是吞吐：目前每天约 38 艘船在美军协助下过峡，冲突前约 138 艘；东侧主要锚地约 218 艘商船滞留；约 141 艘油轮被投入船对船过驳，其中 72% 是 VLCC，等于把主流市场可调用运力锁住，估算仅剩约 639 艘 VLCC 能接正常业务；一轮过驳的平均耗时已从 8 月的约 25 天降到约 14 天。信德海事引 gCaptain 称，过去一周海峡被袭油轮已升至 10 艘；国际海事组织统计截至 11 月 23 日该区域已报告 141 起事件、25 名船员死亡，威胁评级仍为「严重」。布油周四收涨 2.07% 报 96.57，WTI 涨 1.47% 报 84.91，阿联酋穆尔班原油跌 0.94% 报 84.19。中国驻吉达总领馆在吉达港设施遭无人机袭击被拦截后，再次提醒中资机构和中国公民注意安全。",
+          },
+          why: "油价的分母不是配额，是每天能过峡的 38 艘船。一周内被袭油轮到 10 艘之后，风险溢价会从「保险费」变成「运力折价」——后者才会真正传导到炼厂成本和终端油价。",
+          source: "新华社 / 央视新闻 / 信德海事（引 gCaptain、IMO）",
+          url: "https://app.xinhuanet.com/news/article.html?articleId=202611266e9b574b04e0495987ae650bfe825057"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Beijing Rejects the 301 Slate but Notes the Carve-Out: 30 Billion Dollars of Products Are Exempt",
+            body: "MOFCOM spokesman He Yadong said on 26 November that the US Section 301 investigation into structural overcapacity is typical unilateralism that seriously damages the international economic order and violates WTO rules, and urged Washington to return to consultation; the ministry said China will take necessary measures to protect its interests. The more informative sentence came next: Beijing noted that the proposed measures exempt products on the 30 billion dollar reciprocal tariff-reduction list, and asked the US to speed up its domestic procedures so that the arrangement can be implemented as soon as possible. On the same day MOFCOM said it is closely watching the European Commission's preliminary global safeguard ruling on hybrid vehicles, recalling that the two sides had reached an understanding on compliant, non-discriminatory and fact-based terms before the case was opened, and calling on Brussels to honour it. Separately, eight ministries including MOFCOM issued a five-year plan for services trade that calls for cloud computing and large-model AI services to expand overseas in an orderly way, and encourages AI firms to bundle hardware makers, compute providers and IT infrastructure operators into combined technology-product-service packages.",
+          },
+          zh: {
+            title: "商务部反对 301，但点出了豁免：300 亿美元对等降税清单产品被放行",
+            body: "商务部新闻发言人何亚东 11 月 26 日表示，美方 301 调查是典型的单边主义行为，严重破坏国际经济秩序、严重违反世贸组织规则，中方坚决反对，并敦促美方回到对话协商的轨道上。更有信息量的是下一句：中方注意到美方拟议措施对 300 亿美元对等降税清单产品作了豁免，希望美方加快内部程序，与中方共同推动这一安排尽快落地。同日商务部还就欧盟混动汽车全球保障措施初步裁定表态，称中欧在立案前已按「合规、非歧视、尊重事实」三项原则达成谅解，希望欧方严格遵守共识、依世贸规则公正调查。另外，商务部等 8 部门印发《服务贸易发展「十五五」规划》，提出稳妥有序推动云计算、大模型等人工智能相关服务出海，鼓励 AI 企业整合硬件制造商、算力提供商、IT 基础设施运营商，形成「技术+产品+服务」一体化方案。",
+          },
+          why: "回应里最有用的一句不是「坚决反对」，是「300 亿美元清单被豁免」——说明这份清单里留了谈判接口，后面的反制力度会按这个接口的大小来定，而不是按标题上的税率来定。",
+          source: "新华社 / 央视新闻 / 腾讯财经",
+          url: "https://news.qq.com/rain/a/20261127A040TB00"
+        }
+      ]
+    },
+
+    {
+      id: "tech", name: "科技圈", nameEn: "Technology", color: "#1F5C8B",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "Nvidia Stops Shipping Chip Servers to Malaysia, Singapore, Thailand and Indonesia",
+            body: "Nvidia has told partners to halt shipments of servers containing its chips to Malaysia, Singapore, Thailand and Indonesia, according to people familiar with the matter; Dell and Super Micro, which assemble Nvidia chips into servers, have told local buyers that the orders cannot ship and that there is no timetable for resumption. The trigger is the Commerce Department's interim final rule of 16 November restricting remote access to advanced semiconductors, which requires licences for advanced chips supplied to firms in Singapore, Thailand, Malaysia, Indonesia and Brazil on the grounds that they present a high risk of illegal transshipment to China; cloud providers must obtain licences within 90 days and prove their end users exclude restricted entities. One server supplier executive told Chinese media that his company stopped all shipments to Southeast Asia from 20 November and temporarily stopped taking new orders, because it needs more documentation from customers to apply for licences and is worried about expensive GPU boards turning into inventory. Singapore is the sensitive node: Nvidia booked 104 billion dollars of revenue through its Singapore subsidiary in 2025, up 72% year on year, making it a major booking location rather than an end market. Separately, Nvidia's market value has fallen about 380 billion dollars in the two sessions since Jensen Huang's reinstatement on 23 November, after an initial jump, and House Democrats on four committees plus five Democratic senators have demanded explanations of the reappointment process.",
+          },
+          zh: {
+            title: "英伟达停止向马来西亚、新加坡、泰国、印尼发运含其芯片的服务器",
+            body: "据知情人士，英伟达已通知合作伙伴，暂停向马来西亚、新加坡、泰国和印度尼西亚发运搭载其芯片的服务器；负责组装的戴尔与超微电脑已告知当地买家，相关订单无法发货，何时恢复没有时间表。触发点是美国商务部 11 月 16 日的《限制远程获取先进半导体》临时最终规则：以新加坡、泰国、马来西亚、印尼和巴西存在非法对华转运高风险为由，要求向这些国家的企业出口先进芯片必须申请许可证；云服务商还须在 90 天内取得许可，并证明最终用户不含受限实体。一名服务器供应商高管对媒体称，公司自 11 月 20 日起全面停止发往东南亚的货物、并临时不再接新单——既要向客户索取更多资料去申请许可，又担心昂贵的 GPU 板卡变成库存。新加坡之所以敏感：2025 年英伟达通过新加坡子公司入账 1,040 亿美元营收、同比增长 72%，那是记账地，不是终端市场。另外，自 11 月 23 日黄仁勋复职以来，英伟达在两个交易日里市值蒸发约 3,800 亿美元（复职当天曾暴涨），众议院四个委员会的民主党高层与五名民主党参议员已要求白宫解释复职决策过程。",
+          },
+          why: "1,040 亿美元的年营收靠的是「记账地」，许可证管的是「物理去向」——这两件事第一次被硬拆开。东南亚算力项目的交付节奏会先于任何财报数字反映出来。",
+          source: "央视财经 / 证券时报 / 京报网",
+          url: "https://news.qq.com/rain/a/20261126A0HDDT00"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "SK Hynix Gives Its First Hybrid Bonding Volume Order to Besi, Not a Korean Supplier: 100 Nanometres vs 500",
+            body: "SK Hynix plans to place its first volume purchase order for hybrid bonding equipment with Netherlands-based Besi rather than a domestic Korean supplier, according to Seoul Economic Daily; Besi had already told investors on its third-quarter call that it had won hybrid bonding and next-generation thermal compression orders from a leading memory maker, and the Korean report identified the customer. SK Hynix has two hybrid bonding tools running qualification at its Cheongju plant, one from Besi and one from Hanwha Semitech, while Hanmi Semiconductor has not reached the tool-delivery evaluation stage. The gap is alignment accuracy: Besi's tools are quoted at roughly 100 nanometres against about 500 nanometres for the Korean machines, which directly sets the yield ceiling for stacks of 16 layers and above. Hybrid bonding joins copper pads directly with no solder bumps, so the whole interface must be gap-free and a single particle or any warp fails the entire stack - and the more layers, the higher the cost of one bad die. In Shanghai the read-through was immediate: Shenghe Jingwei rose the full 20% with more than 500 million yuan of net institutional inflow and a market value of 190.6 billion yuan, Kuaike Intelligent and Sanjia Technology both hit 10% limit-ups, and PCB and optical-module names rallied alongside.",
+          },
+          zh: {
+            title: "SK 海力士把首份混合键合批量订单给了荷兰 Besi：对准精度 100 纳米对 500 纳米",
+            body: "据韩国《首尔经济日报》，SK 海力士计划把首份混合键合设备的批量采购订单交给荷兰的 Besi，而不是韩国本土设备商；Besi 在三季度财报电话会上已透露从一家头部存储厂商拿到混合键合与新一代热压键合订单，韩媒确认客户就是 SK 海力士。SK 海力士在清州工厂装了两台混合键合设备做质量验证，一台来自 Besi、一台来自韩华 Semitech；韩美半导体尚未进入设备交付评估阶段。差距在精度：Besi 设备的对准精度约 100 纳米，韩美与韩华的误差在 500 纳米左右——这直接决定 16 层以上堆叠的良率上限。混合键合是无凸块结构，两片芯片的铜接触点直接贴合，整个接合面必须无间隙，任何颗粒残留或翘曲都会让整颗产品报废，层数越多、单颗缺陷的代价越高。A 股当天就给出反应：盛合晶微 20% 涨停、主力净流入超 5 亿元、市值 1,906 亿元，快克智能、三佳科技 10% 涨停，PCB 与光模块同步走强。",
+          },
+          why: "设备选型不是在选供应商，是在选良率天花板。100 纳米对 500 纳米，决定了谁能在 16 层以上 HBM 上量产——A 股涨停是情绪，产业信号在那 400 纳米的公差里。",
+          source: "首尔经济日报 / 上海证券报 / 中国证券网",
+          url: "https://www.cnstock.com/commonDetail/833940"
+        },
+        {
+          importance: 2,
+          en: {
+            title: "Two Subscriptions, One Price: OpenAI Tightens Quotas, Google Adds Capacity and Cuts 75% Off for Black Friday",
+            body: "On 26 November the two largest consumer AI ecosystems moved in opposite directions without changing their list prices. OpenAI sent a follow-up email correcting billing errors on GPT-6.2, which in practice makes the Astra and Sol tiers hit their usage limits 40% and 25% faster, compensated by a one-time permanent quota reset available from that day. The same morning, Google Antigravity team member Varun Mohan said five days of caching and performance work had raised the effective usable capacity of a Gemini 4 Neon subscription by nearly 75%, after lifting cache hit rate another 4.5% for 28% more tasks inside the same quota; Gemini Pro was simultaneously on a Black Friday offer of 99.99 dollars a year against a 20 dollar monthly list. Gemini 4 Neon set a first-day paid API usage record on Google, and Sundar Pichai said Antigravity's daily token consumption is up 82% since Argon shipped six weeks ago. The mechanism is not marketing: at a fixed monthly fee plus variable inference cost, whoever has the lower cost per token can hand out more capacity at the same price and still keep the margin. Google's TPU stack and prompt caching are exactly that lever, which is why it can discount and OpenAI cannot.",
+          },
+          zh: {
+            title: "同一个价签，两种打法：OpenAI 收紧配额，谷歌把容量提高 75% 再打黑五折",
+            body: "11 月 26 日，两家最大的消费级 AI 生态在没有改动标价的情况下往相反方向走。OpenAI 发跟进邮件修正 GPT-6.2 的计费误差，实际效果是 Astra 与 Sol 两档触达限额的速度分别加快 40% 和 25%，补偿是一次性的永久额度重置（当日起可用）。同一天上午，谷歌 Antigravity 团队成员 Varun Mohan 称，五天的缓存与性能优化把 Gemini 4 Neon 订阅的有效可用容量提高了近 75%——缓存命中率再提 4.5%，同一配额内可多完成 28% 的任务；同时 Gemini Pro 在黑五给出 99.99 美元/年的价格（原价 20 美元/月）。Gemini 4 Neon 首日创下谷歌付费 API 用量纪录，皮查伊称 Argon 发布六周以来 Antigravity 的日均 token 消耗增长了 82%。这不是营销问题：固定月费加浮动推理成本的模式下，谁的每 token 成本更低，谁就能在同样价格下多发容量还保住毛利——谷歌的 TPU 和 prompt 缓存就是这根杠杆，所以它能打折，OpenAI 不能。",
+          },
+          why: "两边都没动标价，一边把配额缩了 25—40%，一边让同样的配额多干 28% 的活。真正的价格战发生在「每美元买到多少 token」上，标价只是它的封面。",
+          source: "新浪财经 / Latent Space AINews / AI 日报",
+          url: "https://c.sina.com.cn/article/8282261905/riywbogkwmv"
+        }
+      ]
+    },
+
+    {
+      id: "thinking", name: "认知加餐", nameEn: "Thinking", color: "#1F5C4B",
+      items: [
+        {
+          importance: 3,
+          en: {
+            title: "A Quota Is a Promise; a Loading Berth Is Output",
+            body: "On Sunday OPEC+ meets online to set 2027 production policy, and the leak ahead of it is that the group may simply roll the current quotas through January. Read the numbers and the meeting looks consequential: the seven core members are nominally required to produce about 31.01 million barrels a day, of which Saudi Arabia 10.478 million, Russia 9.949 million and Iraq 4.431 million. Read the mechanics and it looks almost decorative. Iraq rejects the outside consultant's assessment of its capacity at about 4.9 million barrels a day and its oil minister has written to claim 5.2 million; Kazakhstan also wants a higher number; the UAE left the group entirely in May. The seven have spent eighteen months formally unwinding the 2023 cuts, raising targets quarter after quarter, while actual output repeatedly fell short because Gulf exports were constrained - so the targets became reference points rather than instructions. Energy Aspects founder Amrita Sen said rolling the current quotas over would make no material difference from a supply-demand standpoint, because members produce what they can and the binding constraint is the ability to move barrels out, not the right to pump them. Add Thursday's data from Hormuz - 38 transits a day against 138 before the conflict, 218 ships waiting at anchor, 141 tankers locked in ship-to-ship transfers - and the picture is complete: the constraint sits in the loading berth and the strait, not in the communique. This is the most common failure mode in planning of any kind. A target is negotiated, published and reviewed; a bottleneck is physical, unpublishable and therefore invisible in the documents everyone reads. When a plan and its outcome diverge, the useless question is who missed the target. The useful question is which single step has the least capacity, because output equals the narrowest segment, always. Teams that report on quotas get credit for numbers. Teams that report on berths get to forecast.",
+          },
+          zh: {
+            title: "配额是承诺，装船泊位才是产量",
+            body: "周日欧佩克+ 要开线上会议定 2027 年产量政策，会前流出的方案是：干脆把现行配额一路滚到 1 月。只看数字，这个会很重要——七个核心成员国名义上被要求合计产油约 3,101 万桶/日，其中沙特 1,047.8 万、俄罗斯 994.9 万、伊拉克 443.1 万。只看机制，它几乎是装饰性的：伊拉克不接受外部顾问给出的约 490 万桶/日产能评估，石油部长写信称自己能到 520 万；哈萨克斯坦也要求上调；阿联酋 5 月已经直接退群。这七国花了一年半，把 2023 年的两轮减产名义上撤回来、一季一季上调目标，可实际产量屡屡低于纸面，因为海湾的出口被卡住——目标于是退化成参考值。Energy Aspects 创始人 Amrita Sen 说得很直接：把现行配额延续到明年，从供需平衡角度看不会带来实质差别，因为各国都在按自己的能力产油，真正的约束是能不能把油运出去，不是有没有权抽上来。再把周四霍尔木兹的数字放进来——日通行 38 艘对冲突前 138 艘、218 艘船在锚地等、141 艘油轮被锁在船对船过驳里——图就完整了：约束在装船泊位和海峡，不在公报里。这是所有计划最常见的失效方式。目标是谈出来的、能发布、能被考核；瓶颈是物理的、发不出去，因此在所有人都在读的文件里隐形。当计划和结果背离时，最没用的问题是「谁没完成目标」；有用的问题是「哪一段的通过能力最小」——因为产出永远等于最窄的那一段。汇报配额的人拿到的是数字，汇报泊位的人拿到的是预测权。",
+          },
+          why: "把「延续配额到 1 月」当成供给信号会读反：它对供需几乎没有影响，真正决定油价的是那 38 艘/日的通行量和 141 艘被锁住的油轮。看约束段，不看指标。",
+          source: "彭博（经财联社/腾讯财经转述）/ 汇通财经 / 信德海事",
+          url: "https://news.qq.com/rain/a/20261126A0H6ZQ00"
+        }
+      ]
+    }
+  ],
+
+  insight: {
+    title_en: "The First Print Is an Estimate, Not a Fact",
+    title_zh: "第一版数字是估计，不是事实",
+    body_en: "On Thursday the US president demanded an immediate investigation into the third-quarter GDP figure, calling the growth data published before this month's midterm elections fake and saying the just-disclosed information proved it, without offering evidence. What actually happened is more boring and more useful. The Commerce Department's Bureau of Economic Analysis revised third-quarter annualised growth to 4.3% from an advance estimate of 3.4% - a 0.9-point gap, and the fastest pace since the fourth quarter of 2023. The BEA has explained the mechanics for years: the advance estimate is produced without complete source data on inventories, trade and services consumption, and an article co-written by the bureau's director found that since the start of this century, revisions published 90 days after the advance estimate differ from it by an average of 0.52 percentage points. A 0.9-point revision is large but it is inside the historical distribution, and the direction of the error - understatement during a strong quarter - is the normal one, because missing inventory and trade data tend to arrive late. So the interesting fact is not the revision. It is that a number everyone quoted for six weeks was, by construction, a placeholder. This is the general case, not a Washington story. Every earnings preview, every project status update, every quarterly OKR, every first interview impression and every medical screening result is an advance estimate with known holes: the parts that are cheapest to measure arrive first, and the parts that decide the outcome arrive last. The professional skill is not reading the first number more carefully. It is knowing which line items are still empty, and therefore which direction the revision is likely to go. People who treat the first print as fact experience the revision as a scandal. People who treat it as an estimate experience it as information.",
+    body_zh: "周四，美国总统要求立即调查三季度 GDP 数据，称中期选举前公布的增长数据是假的、刚刚披露的信息证明了这一点，但没有提供任何证据。实际发生的事更无聊、也更有用。商务部经济分析局把三季度年化增速从初值 3.4% 上修到 4.3%——差 0.9 个百分点，是 2023 年四季度以来最快。BEA 对机制的解释讲了很多年：初值是在缺少库存、贸易和服务消费完整原始数据的情况下算出来的；该局局长参与撰写的一篇文章指出，本世纪以来，初值公布 90 天后发布的修正值与初值平均相差 0.52 个百分点。0.9 个点算大，但仍在历史分布之内，而且误差方向是「强劲季度被低估」这种正常方向——缺的库存和贸易数据本来就晚到。所以真正值得注意的不是修正本身，而是一个被所有人引用了六周的数字，在构造上就是一个占位符。这不是华盛顿的故事，是普遍情况。每一份财报预告、每一次项目进度汇报、每一个季度 OKR、第一轮面试的印象、第一张体检报告，都是带已知缺口的初值：最容易测的部分先到，决定结果的部分最后到。专业能力不是把第一个数字读得更仔细，而是知道哪几行还是空的，因此修正会往哪个方向走。把初值当事实的人，会在修正时感到被欺骗；把初值当估计的人，会在修正时获得信息。",
+    question: "你上一次把一个「初值」当成「事实」做决定，是在修正之前，还是在修正之后才发现的？"
+  },
+
+  watch: [
+    { when: "周五 11/27", text: "美股「黑色星期五」半日市，美东 13:00 收盘（北京时间次日 02:00）、美债 14:00 收；薄流动性会把任何一条关税或霍尔木兹头条放大成价格。同日中国公布 10 月工业企业利润。" },
+    { when: "周日 11/29", text: "欧佩克+ 线上会议讨论 2027 年产量政策，代表称倾向把现行配额延续到 1 月；伊拉克对约 490 万桶/日的产能评估提出异议、要求 520 万，产能基准本身还没谈拢。" },
+    { when: "周一 11/30", text: "中国 11 月官方制造业 PMI。这是 301 拟议措施公布后的第一份景气读数，看新出口订单分项有没有提前反应。" },
+    { when: "12/4", text: "美国 11 月非农。12 月加息已被定价 97.2%，这份数据真正影响的是 2027 年初那次加息的概率——那也是金价现在测的东西。" },
+    { when: "12/9", text: "FOMC 决议（12 月 9 日公布）。25 个基点几成定局，看点在经济预测摘要：会不会把 2027 年的利率路径再往上抬一格。" }
+  ]
+};
+
+</script>
+<script>
+(function(){
+  var B = window.BRIEFING;
+  var $ = function(s,c){return (c||document).querySelector(s)};
+  var app = $('#app');
+
+  if(!B){ app.innerHTML = '<p style="color:#888;padding:40px 0">未找到简报数据 data/briefing.js</p>'; return; }
+
+  /* ---------- 日期 ---------- */
+  var d = new Date(B.meta.date + 'T07:30:00');
+  var wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  $('#dateline').innerHTML =
+    '<b>'+d.getFullYear()+'.'+mm+'.'+dd+'</b>'+
+    '<span class="sep"></span><span>'+wd+'</span>'+
+    '<span class="sep"></span><span>第 '+B.meta.issue+' 期</span>'+
+    '<span class="sep"></span><span>'+(B.meta.readMinutes||6)+' 分钟读完</span>';
+
+  /* ---------- 渲染 ---------- */
+  var total = B.sections.reduce(function(n,s){return n+s.items.length},0);
+
+  var html = '';
+
+  /* hero */
+  html += '<section class="hero">'+
+    '<div class="kicker">Today in one line</div>'+
+    '<h1>'+esc(B.meta.tldr_en)+'</h1>'+
+    '<p class="zh">'+esc(B.meta.tldr_zh)+'</p>'+
+    '<div class="hero-meta"><span>'+total+' 条精选</span><span>'+B.sections.length+' 个板块</span><span>每日 07:30 更新</span></div>'+
+  '</section>';
+
+  /* ticker */
+  if(B.pulse && B.pulse.length){
+    html += '<div class="ticker-wrap"><div class="ticker">';
+    B.pulse.forEach(function(p){
+      var cls = p.dir === 'up' ? 'up' : p.dir === 'down' ? 'down' : 'flat';
+      html += '<div class="tick"><div class="n">'+esc(p.label)+'</div>'+
+              '<div class="v">'+esc(p.value)+'</div>'+
+              '<div class="c '+cls+'">'+esc(p.change)+'</div></div>';
+    });
+    html += '</div></div>';
+  }
+
+  /* tabs */
+  html += '<nav class="tabs"><button class="tab on" data-f="all">全部</button>';
+  B.sections.forEach(function(s){
+    html += '<button class="tab" data-f="'+s.id+'">'+esc(s.name)+'</button>';
+  });
+  html += '</nav>';
+
+  /* sections */
+  B.sections.forEach(function(sec){
+    html += '<section class="group '+sec.id+'" data-sec="'+sec.id+'">'+
+      '<div class="group-head">'+
+        '<span class="bar" style="background:'+sec.color+'"></span>'+
+        '<h2>'+esc(sec.name)+'</h2>'+
+        '<span class="en">'+esc(sec.nameEn)+'</span>'+
+        '<span class="cnt">'+sec.items.length+'</span>'+
+      '</div>';
+
+    sec.items.forEach(function(it, i){
+      var id = sec.id + '-' + i;
+      var dots = '';
+      for(var k=1;k<=3;k++){ dots += '<i class="'+(k<=(it.importance||2)?'f':'')+'"></i>'; }
+      html += '<article class="card" data-sec="'+sec.id+'" data-id="'+id+'">'+
+        '<div class="card-top">'+
+          '<span class="pill" style="--sec:'+sec.color+'">'+esc(sec.name)+'</span>'+
+          '<span class="imp" title="重要性">'+dots+'</span>'+
+          '<button class="save" data-id="'+id+'" title="收藏">☆</button>'+
+        '</div>'+
+        '<h3 class="t-en">'+esc(it.en.title)+'</h3>'+
+        '<p class="b-en">'+esc(it.en.body)+'</p>'+
+        '<div class="divider">中文</div>'+
+        '<h4 class="t-zh">'+esc(it.zh.title)+'</h4>'+
+        '<p class="b-zh">'+esc(it.zh.body)+'</p>'+
+        '<div class="why"><b>Why it matters · 为什么重要</b><p>'+esc(it.why)+'</p></div>'+
+        '<div class="card-foot"><span>'+esc(it.source)+'</span>'+
+          (it.url?'<a href="'+it.url+'" target="_blank" rel="noopener">原文 →</a>':'')+
+          '<button class="ask-inline" data-ask="'+esc(it.zh.title)+'">问这条</button>'+
+        '</div>'+
+      '</article>';
+    });
+    html += '</section>';
+  });
+
+  /* insight */
+  if(B.insight){
+    var I = B.insight;
+    html += '<section class="insight">'+
+      '<div class="ins-kicker">认知加餐 · Mental Model</div>'+
+      '<h2>'+esc(I.title_en)+'</h2>'+
+      '<div class="h2-zh">'+esc(I.title_zh)+'</div>'+
+      '<p class="en-body">'+esc(I.body_en)+'</p>'+
+      '<p class="zh-body">'+esc(I.body_zh)+'</p>'+
+      '<div class="q">'+esc(I.question)+'</div>'+
+    '</section>';
+  }
+
+  /* watch */
+  if(B.watch && B.watch.length){
+    html += '<section class="watch"><h3>明日关注 · On Deck</h3>';
+    B.watch.forEach(function(w){
+      html += '<div class="w-item"><span class="when">'+esc(w.when)+'</span><span>'+esc(w.text)+'</span></div>';
+    });
+    html += '</section>';
+  }
+
+  html += '<footer>'+
+    '<div class="f-brand"><span class="dot"></span>Buddy Morning Brief</div>'+
+    '<div>'+esc(B.meta.footer||'每天 07:30 更新。内容由 Buddy 从公开信源整理，中英文对照仅供阅读与语言学习，不构成任何投资建议。')+'</div>'+
+    '<div style="margin-top:7px;opacity:.72">编译于 '+esc(B.meta.generatedAt||'')+'</div>'+
+  '</footer>';
+
+  app.innerHTML = html;
+
+  /* ---------- 筛选 ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){x.classList.remove('on')});
+      t.classList.add('on');
+      var f = t.dataset.f;
+      document.querySelectorAll('.group').forEach(function(g){
+        g.style.display = (f==='all' || g.dataset.sec===f) ? '' : 'none';
+      });
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  /* ---------- 进场动画 ---------- */
+  var cards = document.querySelectorAll('.card');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.remove('pending');
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, {rootMargin:'0px 0px -40px 0px', threshold:.05});
+    cards.forEach(function(c,i){
+      c.classList.add('pending');
+      c.style.transitionDelay = (i%3)*55+'ms';
+      io.observe(c);
+    });
+  } else {
+    cards.forEach(function(c){ c.classList.add('in'); });
+  }
+
+  /* ---------- 收藏 ---------- */
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('buddy.saved')||'{}'); } catch(e){}
+  document.querySelectorAll('.save').forEach(function(b){
+    if(saved[b.dataset.id]){ b.classList.add('on'); b.textContent='★'; }
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      var id = b.dataset.id;
+      if(saved[id]){ delete saved[id]; b.classList.remove('on'); b.textContent='☆'; }
+      else { saved[id]=1; b.classList.add('on'); b.textContent='★'; }
+      try{ localStorage.setItem('buddy.saved', JSON.stringify(saved)); }catch(err){}
+    });
+  });
+
+  /* ---------- 语言 ---------- */
+  var langs = ['both','zh','en'];
+  var lang = localStorage.getItem('buddy.lang') || 'both';
+  function applyLang(){
+    document.documentElement.dataset.lang = lang;
+    var lb = $('#langBtn');
+    lb.textContent = lang === 'both' ? '中英' : (lang === 'zh' ? '中' : 'EN');
+    lb.classList.toggle('on', lang !== 'both');
+    lb.title = '当前：' + (lang === 'both' ? '中英对照' : lang === 'zh' ? '仅中文' : '仅英文');
+  }
+  applyLang();
+  $('#langBtn').addEventListener('click', function(){
+    lang = langs[(langs.indexOf(lang)+1) % langs.length];
+    localStorage.setItem('buddy.lang', lang);
+    applyLang();
+  });
+
+  /* ---------- 主题 ---------- */
+  var theme = localStorage.getItem('buddy.theme') ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  function applyTheme(){
+    document.documentElement.dataset.theme = theme;
+    $('meta[name=theme-color]').setAttribute('content', theme==='dark' ? '#100F0D' : '#F4F1EA');
+  }
+  applyTheme();
+  $('#themeBtn').addEventListener('click', function(){
+    theme = theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('buddy.theme', theme);
+    applyTheme();
+  });
+
+  /* ---------- 朗读 ---------- */
+  var speaking = false;
+  $('#speakBtn').addEventListener('click', function(){
+    if(!('speechSynthesis' in window)) return;
+    if(speaking){ speechSynthesis.cancel(); speaking=false; $('#speakBtn').classList.remove('on'); return; }
+    var text = B.meta.tldr_zh + '。' +
+      B.sections.map(function(s){ return s.name + '：' + s.items.map(function(i){return i.zh.title}).join('；'); }).join('。');
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 1.02; u.pitch = 1;
+    u.onend = function(){ speaking=false; $('#speakBtn').classList.remove('on'); };
+    speechSynthesis.speak(u);
+    speaking = true; $('#speakBtn').classList.add('on');
+  });
+
+  /* ---------- 进度条 ---------- */
+  var bar = $('#progress');
+  function onScroll(){
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ---------- utils ---------- */
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(m){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+  }
+})();
+</script>
+</body>
+</html>
